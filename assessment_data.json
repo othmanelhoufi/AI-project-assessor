@@ -23,6 +23,10 @@
                 ],
                 "roles": {
                   "ml_engineer": {
+                    "title": "ML Engineer",
+                    "allocation": "100%",
+                    "priority": "Critical",
+                    "experience": "Mid-level",
                     "knowledge": "Scikit-learn, XGBoost/LightGBM, Feature Engineering, Cross-validation",
                     "criticalSkills": ["Statistical validation", "Feature selection", "Model interpretability"]
                   },
@@ -52,6 +56,10 @@
                 ],
                 "roles": {
                   "ml_engineer": {
+                    "title": "ML Engineer",
+                    "allocation": "100%",
+                    "priority": "Critical",
+                    "experience": "Mid-level",
                     "knowledge": "Scikit-learn, Imbalanced Data Handling, Classification Metrics (AUC-ROC, F1, Precision-Recall)",
                     "criticalSkills": ["Class imbalance handling", "Threshold tuning", "Multi-class strategies"]
                   }
@@ -213,6 +221,10 @@
                 "avoidTech": ["Supervised learning if anomalies are undefined or unlabeled"],
                 "roles": {
                   "ml_engineer": {
+                    "title": "ML Engineer",
+                    "allocation": "100%",
+                    "priority": "Critical",
+                    "experience": "Mid-level",
                     "knowledge": "Isolation Forest, LOF, Autoencoders, Statistical process control",
                     "criticalSkills": ["Threshold tuning", "False positive management", "Feature engineering for anomalies"]
                   }
@@ -563,7 +575,7 @@
               "label": "Large (e.g., 100k+ records or 50-500 GB)",
               "effects": {
                 "techProfile": {
-                  "DataProcessing": "Polars, Dask, or chunked processing recommended",
+                  "DataProcessing": "Spark, Polars, Dask, or chunked processing recommended",
                   "ModelTraining": "Consider distributed training for deep learning"
                 },
                 "infrastructureNeeds": ["High-memory machines", "SSD storage for performance"],
