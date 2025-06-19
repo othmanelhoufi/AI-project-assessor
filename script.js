@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressText = document.getElementById('progressText');
     const progressPercentage = document.getElementById('progressPercentage');
     const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document = document.getElementById('nextBtn'); // Fixed typo
+    const nextBtn = document.getElementById('nextBtn'); // Fixed typo
     const startOverBtn = document.getElementById('startOverBtn');
     const saveAssessmentBtn = document.getElementById('saveAssessmentBtn');
     const insufficientInfoWarning = document.getElementById('insufficientInfoWarning');
