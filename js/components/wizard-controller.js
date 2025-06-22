@@ -25,7 +25,6 @@ export class WizardController {
       prevBtn: document.querySelector(DOM_SELECTORS.buttons.prev),
       nextBtn: document.querySelector(DOM_SELECTORS.buttons.next),
       startOverBtn: document.querySelector(DOM_SELECTORS.buttons.startOver),
-      // --- [FIX 1] --- Add the missing save button element reference ---
       saveBtn: document.querySelector(DOM_SELECTORS.buttons.saveAssessment)
     };
   }
@@ -115,7 +114,6 @@ export class WizardController {
     if (success) {
       await ModalManager.showAlert('Assessment saved successfully!', 'Success', '✅');
       stateManager.setState('editingId', assessment.id);
-      
       // Automatically refresh the history view for immediate feedback
       if (window.assessmentApp && window.assessmentApp.historyManager) {
         window.assessmentApp.historyManager.loadHistory();
