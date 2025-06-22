@@ -137,12 +137,11 @@ export class HistoryManager {
     });
 
     // Navigate to assessment page
-    const { NavigationManager } = window.assessmentApp;
-    NavigationManager.showPage('assessment');
+    window.assessmentApp.navigationManager.showPage('assessment');
 
     // Start the wizard with existing data
-    const { WizardController } = window.assessmentApp;
-    WizardController.startAssessment();
+    // Make sure wizardController is used, which is the instance
+    window.assessmentApp.wizardController.startAssessment();
   }
 
   reviewAssessment(id) {

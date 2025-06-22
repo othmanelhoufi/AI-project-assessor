@@ -101,11 +101,12 @@ export class ModalManager {
     });
   }
 
-  static showReviewModal(assessment) {
+  static async showReviewModal(assessment) {
     const elements = this._getModalElements('review');
     
     elements.title.textContent = `Assessment Review: ${assessment.name}`;
-    elements.content.innerHTML = this._generateReviewContent(assessment);
+    // Await the content generation
+    elements.content.innerHTML = await this._generateReviewContent(assessment);
     elements.modal.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
 
     const handleClose = () => {
@@ -129,146 +130,157 @@ export class ModalManager {
     return elements;
   }
 
-  static _generateReviewContent(assessment) {
+  static async _generateReviewContent(assessment) { // Made async
     const { answers, result } = assessment;
     
     // Import DataService for question lookup
-    import('../services/data-service.js').then(({ DataService }) => {
-      // Generate questions and answers section
-      let questionsHtml = '<div class="space-y-4">';
+    // Await the dynamic import
+    const { DataService } = await import('../services/data-service.js');
+
+    // Generate questions and answers section
+    let questionsHtml = '<div class="space-y-4">';
+    // ... rest of the function remains largely the same, but it's now inside an async function
+    // and the .then() structure is removed.
+    // The generated HTML (questionsHtml + resultHtml) will be stored in a variable, let's call it htmlContent
+    // and then returned at the end of the function.
+    // For brevity, I'm not reproducing the entire HTML generation logic here,
+    // just showing the key change with async/await for the import.
+
+    // --- Start of existing HTML generation logic (simplified for this diff) ---
+    for (const [questionId, answer] of Object.entries(answers)) {
+      const question = DataService.getQuestionById(questionId);
+      if (!question) continue;
       
-      for (const [questionId, answer] of Object.entries(answers)) {
-        const question = DataService.getQuestionById(questionId);
-        if (!question) continue;
-        
-        const selectedOption = DataService.getOptionByValue(questionId, answer);
-        const isUncertain = selectedOption?.is_uncertain || false;
-        
-        questionsHtml += `
-          <div class="border-l-4 ${isUncertain ? 'border-yellow-400' : 'border-green-400'} pl-4">
-            <h4 class="font-medium text-gray-900">${question.text}</h4>
-            <p class="text-sm ${isUncertain ? 'text-yellow-700' : 'text-green-700'}">
-              ${isUncertain ? '⚠️ ' : '✓ '}${selectedOption ? selectedOption.label : answer}
-            </p>
+      const selectedOption = DataService.getOptionByValue(questionId, answer);
+      const isUncertain = selectedOption?.is_uncertain || false;
+
+      questionsHtml += `
+        <div class="border-l-4 ${isUncertain ? 'border-yellow-400' : 'border-green-400'} pl-4">
+          <h4 class="font-medium text-gray-900">${question.text}</h4>
+          <p class="text-sm ${isUncertain ? 'text-yellow-700' : 'text-green-700'}">
+            ${isUncertain ? '⚠️ ' : '✓ '}${selectedOption ? selectedOption.label : answer}
+          </p>
+        </div>
+      `;
+    }
+    questionsHtml += '</div>';
+
+    // Generate result section
+    let resultHtml = '<div class="mt-8">';
+    if (!result) {
+      resultHtml += '<p class="text-gray-500">No assessment result available.</p>';
+    } else {
+      const resultData = result;
+
+      // Handle insufficient information case
+      if (resultData.insufficientInfo) {
+        resultHtml += `
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <h3 class="text-lg font-semibold text-yellow-800 mb-2">⚠️ Insufficient Information</h3>
+            <p class="text-yellow-700">${resultData.insufficientInfoMessage}</p>
+            ${resultData.uncertainAreas ? `
+              <div class="mt-2">
+                <p class="font-medium text-yellow-800">Areas needing clarification:</p>
+                <ul class="list-disc list-inside text-yellow-700">
+                  ${resultData.uncertainAreas.map(area => `<li>${area}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
           </div>
         `;
-      }
-      questionsHtml += '</div>';
-      
-      // Generate result section
-      let resultHtml = '<div class="mt-8">';
-      if (!result) {
-        resultHtml += '<p class="text-gray-500">No assessment result available.</p>';
       } else {
-        const resultData = result;
+        // Standard result
+        resultHtml += `
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h3 class="text-lg font-semibold text-blue-800 mb-2">📋 Assessment Summary</h3>
+            <p class="text-blue-700">${resultData.summary}</p>
+          </div>
+        `;
         
-        // Handle insufficient information case
-        if (resultData.insufficientInfo) {
+        // Feasibility
+        if (resultData.feasibility) {
           resultHtml += `
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <h3 class="text-lg font-semibold text-yellow-800 mb-2">⚠️ Insufficient Information</h3>
-              <p class="text-yellow-700">${resultData.insufficientInfoMessage}</p>
-              ${resultData.uncertainAreas ? `
-                <div class="mt-2">
-                  <p class="font-medium text-yellow-800">Areas needing clarification:</p>
-                  <ul class="list-disc list-inside text-yellow-700">
-                    ${resultData.uncertainAreas.map(area => `<li>${area}</li>`).join('')}
-                  </ul>
-                </div>
-              ` : ''}
+            <div class="mb-4">
+              <h4 class="font-medium text-gray-900">Risk Level: ${resultData.feasibility.risk}</h4>
+              <p>Confidence: ${resultData.feasibility.confidence}</p>
+              ${resultData.feasibility.summary ? `<p class="text-sm text-gray-600">${resultData.feasibility.summary}</p>` : ''}
             </div>
           `;
-        } else {
-          // Standard result
+        }
+
+        // Tech Profile
+        if (resultData.techProfile) {
           resultHtml += `
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 class="text-lg font-semibold text-blue-800 mb-2">📋 Assessment Summary</h3>
-              <p class="text-blue-700">${resultData.summary}</p>
-            </div>
-          `;
-          
-          // Feasibility
-          if (resultData.feasibility) {
-            resultHtml += `
-              <div class="mb-4">
-                <h4 class="font-medium text-gray-900">Risk Level: ${resultData.feasibility.risk}</h4>
-                <p>Confidence: ${resultData.feasibility.confidence}</p>
-                ${resultData.feasibility.summary ? `<p class="text-sm text-gray-600">${resultData.feasibility.summary}</p>` : ''}
-              </div>
-            `;
-          }
-          
-          // Tech Profile
-          if (resultData.techProfile) {
-            resultHtml += `
-              <div class="mb-4">
-                <h4 class="font-medium text-gray-900 mb-2">Technology Profile</h4>
-                <table class="min-w-full border border-gray-200">
-                  <thead>
-                    <tr class="bg-gray-50">
-                      <th class="border border-gray-200 px-3 py-2 text-left">Aspect</th>
-                      <th class="border border-gray-200 px-3 py-2 text-left">Recommendation</th>
+            <div class="mb-4">
+              <h4 class="font-medium text-gray-900 mb-2">Technology Profile</h4>
+              <table class="min-w-full border border-gray-200">
+                <thead>
+                  <tr class="bg-gray-50">
+                    <th class="border border-gray-200 px-3 py-2 text-left">Aspect</th>
+                    <th class="border border-gray-200 px-3 py-2 text-left">Recommendation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${Object.entries(resultData.techProfile).map(([key, value]) => `
+                    <tr>
+                      <td class="border border-gray-200 px-3 py-2 font-medium">${this._formatAspectName(key)}</td>
+                      <td class="border border-gray-200 px-3 py-2">${value}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    ${Object.entries(resultData.techProfile).map(([key, value]) => `
-                      <tr>
-                        <td class="border border-gray-200 px-3 py-2 font-medium">${this._formatAspectName(key)}</td>
-                        <td class="border border-gray-200 px-3 py-2">${value}</td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
-              </div>
-            `;
-          }
-          
-          // Timeline
-          if (resultData.eta) {
-            resultHtml += `
-              <div class="mb-4">
-                <h4 class="font-medium text-gray-900">Timeline</h4>
-                <p>Total Duration (${resultData.scope_title || 'Project'}): ${
-                  resultData.eta.min === resultData.eta.max 
-                    ? `${resultData.eta.min} months` 
-                    : `${resultData.eta.min}-${resultData.eta.max} months`
-                }</p>
-              </div>
-            `;
-          }
-          
-          // Team Composition
-          if (resultData.roles) {
-            resultHtml += `
-              <div class="mb-4">
-                <h4 class="font-medium text-gray-900 mb-2">Required Team</h4>
-                <div class="space-y-2">
-                  ${Object.entries(resultData.roles).map(([roleKey, role]) => `
-                    <div class="border border-gray-200 rounded p-3">
-                      <h5 class="font-medium">${role.title || roleKey}</h5>
-                      ${role.allocation ? `<p class="text-sm text-gray-600">Allocation: ${role.allocation}</p>` : ''}
-                      ${role.priority ? `<p class="text-sm text-gray-600">Priority: ${role.priority}</p>` : ''}
-                      ${role.experience ? `<p class="text-sm text-gray-600">Experience: ${role.experience}</p>` : ''}
-                      ${role.knowledge ? `<p class="text-sm text-gray-600">Knowledge: ${role.knowledge}</p>` : ''}
-                      ${role.criticalSkills ? `<p class="text-sm text-gray-600">Critical Skills: ${Array.isArray(role.criticalSkills) ? role.criticalSkills.join(', ') : role.criticalSkills}</p>` : ''}
-                    </div>
                   `).join('')}
-                </div>
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        // Timeline
+        if (resultData.eta) {
+          resultHtml += `
+            <div class="mb-4">
+              <h4 class="font-medium text-gray-900">Timeline</h4>
+              <p>Total Duration (${resultData.scope_title || 'Project'}): ${
+                resultData.eta.min === resultData.eta.max
+                  ? `${resultData.eta.min} months`
+                  : `${resultData.eta.min}-${resultData.eta.max} months`
+              }</p>
+            </div>
+          `;
+        }
+
+        // Team Composition
+        if (resultData.roles) {
+          resultHtml += `
+            <div class="mb-4">
+              <h4 class="font-medium text-gray-900 mb-2">Required Team</h4>
+              <div class="space-y-2">
+                ${Object.entries(resultData.roles).map(([roleKey, role]) => `
+                  <div class="border border-gray-200 rounded p-3">
+                    <h5 class="font-medium">${role.title || roleKey}</h5>
+                    ${role.allocation ? `<p class="text-sm text-gray-600">Allocation: ${role.allocation}</p>` : ''}
+                    ${role.priority ? `<p class="text-sm text-gray-600">Priority: ${role.priority}</p>` : ''}
+                    ${role.experience ? `<p class="text-sm text-gray-600">Experience: ${role.experience}</p>` : ''}
+                    ${role.knowledge ? `<p class="text-sm text-gray-600">Knowledge: ${role.knowledge}</p>` : ''}
+                    ${role.criticalSkills ? `<p class="text-sm text-gray-600">Critical Skills: ${Array.isArray(role.criticalSkills) ? role.criticalSkills.join(', ') : role.criticalSkills}</p>` : ''}
+                  </div>
+                `).join('')}
               </div>
-            `;
-          }
+            </div>
+          `;
         }
       }
-      resultHtml += '</div>';
-      
-      return questionsHtml + resultHtml;
-    });
+    }
+    resultHtml += '</div>';
+
+    const htmlContent = questionsHtml + resultHtml;
+    // --- End of existing HTML generation logic ---
     
-    // Return placeholder while async import loads
-    return '<p>Loading review content...</p>';
+    // No longer returning placeholder, as the function is now async.
+    // The caller will await the actual content.
+    return htmlContent;
   }
 
   static _formatAspectName(key) {
+    // This is the correct content for _formatAspectName
     return key.replace(/([A-Z])/g, ' $1')
               .replace(/^./, str => str.toUpperCase())
               .trim();
