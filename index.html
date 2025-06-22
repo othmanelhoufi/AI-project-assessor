@@ -115,39 +115,36 @@
                     </button>
                 </div>
 
-                <!-- Results Container -->
+                <!-- Assessment Result (with buttons moved inside) -->
                 <div id="assessmentResult" class="hidden">
-                    <div id="insufficientInfoWarning" class="hidden bg-orange-50 border border-orange-200 rounded-lg p-6 m-6">
-                        <div class="flex items-start">
-                            <div class="flex-shrink-0">
-                                <span class="text-2xl">⚠️</span>
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="text-lg font-medium text-orange-800 mb-2">Insufficient Information</h3>
-                                <div class="text-orange-700 mb-4">
-                                    <p>The assessment cannot be reliably generated because critical information is missing or uncertain. To create an accurate technology and resource plan, please gather more details on the following topics before re-running the assessment:</p>
-                                </div>
-                                <div id="uncertaintyList" class="mb-4"></div>
-                                <div class="text-sm text-orange-600">
-                                    <strong>Recommendation:</strong> Address these uncertainties with stakeholders and domain experts, then re-run the assessment for a comprehensive technology roadmap.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="standardResult" class="p-6">
-                        <div class="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 class="text-2xl font-bold text-gray-900 mb-2">Assessment Results</h3>
-                                <p id="resultTimestamp" class="text-sm text-gray-500"></p>
-                            </div>
-                            <button id="saveAssessmentBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                                💾 Save Assessment
-                            </button>
-                        </div>
-                        <div id="resultContent"></div>
-                    </div>
+                <!-- Insufficient Info Warning -->
+                <div id="insufficientInfoWarning" class="hidden">
+                    <!-- Populated by JS -->
                 </div>
+                
+                <!-- Standard Result -->
+                <div id="standardResult" class="hidden">
+                    <!-- Populated by JS -->
+                </div>
+                
+                <!-- Action Buttons (Now correctly placed inside the result container) -->
+                <div class="flex justify-center space-x-4 mt-8">
+                    <button 
+                    id="startOverBtn" 
+                    class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                    Start Over
+                    </button>
+                    
+                    <button 
+                    id="saveAssessmentBtn" 
+                    class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                    Save Assessment
+                    </button>
+                </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -283,7 +280,29 @@
         </div>
     </div>
     
+    <!-- Review Assessment Modal -->
+    <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h2 id="reviewTitle" class="text-xl font-bold text-gray-900">Assessment Review</h2>
+                    <button id="reviewClose" class="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+                </div>
+                <div class="overflow-y-auto max-h-[calc(90vh-140px)]">
+                    <div id="reviewContent" class="p-6">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="flex justify-end p-6 border-t bg-gray-50">
+                    <button id="reviewCloseBtn" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <script src="script.js"></script>
+
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
