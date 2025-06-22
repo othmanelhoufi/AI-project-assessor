@@ -61,12 +61,20 @@ export class StateManager {
 
   // Convenience methods for common operations
   resetAssessment() {
-    this.updateState({
+    const updates = {
       currentCategoryIndex: 0,
-      currentAnswers: {},
       currentResult: null,
-      editingId: null
-    });
+    };
+
+    // Only reset answers and editingId if not currently editing
+    if (!this.state.editingId) {
+      updates.currentAnswers = {};
+      updates.editingId = null;
+    }
+    // If we are editing, currentAnswers and editingId are preserved.
+    // currentCategoryIndex is always reset to 0 to start from the beginning.
+
+    this.updateState(updates);
   }
 
   setAnswer(questionId, value) {

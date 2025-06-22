@@ -133,7 +133,8 @@ export class HistoryManager {
     stateManager.updateState({
       currentAnswers: assessment.answers || {},
       editingId: id,
-      currentResult: assessment.result || null
+      currentResult: assessment.result || null,
+      currentCategoryIndex: 0 // Ensure wizard starts from the first category
     });
 
     // Navigate to assessment page
