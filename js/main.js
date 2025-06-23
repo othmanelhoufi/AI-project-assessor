@@ -44,6 +44,8 @@ class AIProjectAssessmentApp {
     // Start assessment button
     const startBtn = document.querySelector(DOM_SELECTORS.wizard.startBtn);
     startBtn?.addEventListener('click', () => {
+      // Ensure editingId is cleared when starting a fresh assessment from the main button
+      stateManager.setState('editingId', null);
       this.wizardController.startAssessment();
     });
 
