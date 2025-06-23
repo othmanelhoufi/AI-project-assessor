@@ -86,32 +86,108 @@ export class ResultRenderer {
     }
   }
 
+  _generateDynamicHeaderCard(result) {
+    let cardText = '';
+    let cardStyle = 'bg-gray-50 border border-gray-300 text-gray-700'; // Default/fallback
+    let icon = '⚙️'; // Default icon
+
+    const scopeTitle = result.scope_title || 'Project';
+    const confidence = result.feasibility?.confidence?.toLowerCase();
+
+    if (confidence === 'high' || confidence === 'very high') {
+      cardText = `This ${scopeTitle} project looks promising and is likely highly feasible.`;
+      cardStyle = 'bg-green-50 border border-green-300 text-green-800';
+      icon = '✅';
+    } else if (confidence === 'medium') {
+      cardText = `This ${scopeTitle} project shows potential, but requires careful planning to ensure feasibility. Consider addressing highlighted warnings and risks.`;
+      cardStyle = 'bg-yellow-50 border border-yellow-300 text-yellow-800';
+      icon = '🤔';
+    } else if (confidence === 'low' || confidence === 'very low') {
+      cardText = `This ${scopeTitle} project faces significant feasibility challenges. Addressing the warnings and risks identified is crucial before proceeding.`;
+      cardStyle = 'bg-red-50 border border-red-300 text-red-700';
+      icon = '⚠️';
+    } else {
+      // Fallback for undefined or unexpected confidence levels
+      cardText = `Assessment summary for this ${scopeTitle} project. Review the details below.`;
+    }
+
+    return `
+      <div class="${cardStyle} shadow-lg rounded-xl p-6 md:p-8 mb-6">
+        <div class="flex items-start">
+          <span class="text-3xl mr-4">${icon}</span>
+          <div>
+            <h2 class="text-xl md:text-2xl font-semibold mb-2">Feasibility Outlook for: ${scopeTitle}</h2>
+            <p class="text-base">${cardText}</p>
+          </div>
+        </div>
+      </div>`;
+  }
+
   _generateStandardResultHTML(result) {
-    let html = ``; // Outermost wrapper removed
+    let html = ``;
 
-        // Header Card: Scope Title and Summary
-        html += `
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl rounded-xl p-6 md:p-8 mb-6">
-          <h2 class="text-xl md:text-2xl font-semibold text-indigo-200 mb-1">Assessment Report For:</h2>
-          <p class="text-2xl md:text-3xl font-bold mb-3">${result.scope_title || 'Unnamed Project'}</p>
-          <hr class="border-indigo-400/50 my-4">
-          <h3 class="text-lg font-semibold text-indigo-200 mb-1">Key Summary:</h3>
-          <p class="text-indigo-100 text-base">${result.summary || 'No summary provided.'}</p>
-        </div>`;
+    // 1. Dynamic Header Card
+    html += this._generateDynamicHeaderCard(result);
 
-    // Combined ETA and Feasibility Card
+    // Buffer for sections to reorder
+    let warningsHtml = '';
+    let avoidTechHtml = '';
+    let feasibilityHtml = '';
+    let techProfileHtml = '';
+    let teamHtml = '';
+
+    // Generate Warnings HTML
+    if (result.warnings && result.warnings.length > 0) {
+      warningsHtml = `
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-xl rounded-r-lg p-6 mb-6">
+          <h3 class="text-xl font-semibold text-yellow-800 mb-1 flex items-center">
+            <svg class="h-6 w-6 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd"/></svg>
+            Important Warnings
+          </h3>
+          <p class="text-sm text-yellow-600 mb-4 ml-8">Pay close attention to these potential issues.</p>
+          <ul class="space-y-2 ml-8">
+            ${result.warnings.map(warning => `
+              <li class="flex items-start text-yellow-700">
+                <svg class="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd" /></svg>
+                <span>${warning}</span>
+              </li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    // Generate Technologies to Avoid HTML
+    if (result.avoidTech && result.avoidTech.length > 0) {
+      avoidTechHtml = `
+        <div class="bg-red-50 border-l-4 border-red-400 shadow-xl rounded-r-lg p-6 mb-6">
+          <h3 class="text-xl font-semibold text-red-800 mb-1 flex items-center">
+            <svg class="h-6 w-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+            Technologies to Avoid
+          </h3>
+          <p class="text-sm text-red-600 mb-4 ml-8">Consider alternatives for these technologies or approaches.</p>
+          <ul class="space-y-2 ml-8">
+            ${result.avoidTech.map(tech => `
+              <li class="flex items-start text-red-700">
+                <svg class="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                <span>${tech}</span>
+              </li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    // Generate Combined ETA and Feasibility Card HTML
     if (result.eta || result.feasibility) {
-      html += `
+      feasibilityHtml = `
         <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">📊</span> Project Estimates & Feasibility
           </h3>
           <p class="text-sm text-gray-500 mb-6">Key projections for project timeline and viability.</p>
-          <div class="space-y-6">`; // Changed from grid to space-y for vertical stacking of sub-cards
+          <div class="space-y-6">`;
 
-      // Feasibility Assessment Sub-Card (More Prominent)
       if (result.feasibility) {
-        html += `
+        feasibilityHtml += `
             <div class="bg-indigo-50/60 border border-indigo-200 rounded-lg p-5 shadow-md hover:shadow-lg transition-shadow duration-200">
               <h4 class="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
                 <span class="mr-2">🎯</span> Feasibility Assessment
@@ -130,9 +206,8 @@ export class ResultRenderer {
             </div>`;
       }
 
-      // Timeline Estimate Sub-Card
       if (result.eta) {
-        html += `
+        feasibilityHtml += `
             <div class="bg-gray-50/70 border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
               <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
                 <span class="mr-2">⏱️</span> Timeline Estimate
@@ -144,15 +219,15 @@ export class ResultRenderer {
               </div>
             </div>`;
       }
-      html += `
+      feasibilityHtml += `
           </div>
         </div>
       `;
     }
 
-    // Technology Profile
+    // Generate Technology Profile HTML
     if (result.techProfile && Object.keys(result.techProfile).length > 0) {
-      html += `
+      techProfileHtml = `
         <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">🔧</span> Technology Profile
@@ -180,9 +255,9 @@ export class ResultRenderer {
       `;
     }
 
-    // Team Composition
+    // Generate Team Composition HTML
     if (result.roles && Object.keys(result.roles).length > 0) {
-      html += `
+      teamHtml = `
         <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">👥</span> Required Team
@@ -206,50 +281,12 @@ export class ResultRenderer {
       `;
     }
 
-    // Warnings
-    if (result.warnings && result.warnings.length > 0) {
-      html += `
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-xl rounded-r-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-yellow-800 mb-1 flex items-center">
-            <svg class="h-6 w-6 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd"/></svg>
-            Important Warnings
-          </h3>
-          <p class="text-sm text-yellow-600 mb-4 ml-8">Pay close attention to these potential issues.</p>
-          <ul class="space-y-2 ml-8">
-            ${result.warnings.map(warning => `
-              <li class="flex items-start text-yellow-700">
-                <svg class="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd" /></svg>
-                <span>${warning}</span>
-              </li>`).join('')}
-          </ul>
-        </div>
-      `;
-    }
-
-    // Technologies to Avoid
-    if (result.avoidTech && result.avoidTech.length > 0) {
-      html += `
-        <div class="bg-red-50 border-l-4 border-red-400 shadow-xl rounded-r-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-red-800 mb-1 flex items-center">
-            <svg class="h-6 w-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-            Technologies to Avoid
-          </h3>
-          <p class="text-sm text-red-600 mb-4 ml-8">Consider alternatives for these technologies or approaches.</p>
-          <ul class="space-y-2 ml-8">
-            ${result.avoidTech.map(tech => `
-              <li class="flex items-start text-red-700">
-                <svg class="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-                <span>${tech}</span>
-              </li>`).join('')}
-          </ul>
-        </div>
-      `;
-    }
-
-    // Ensure the last card also has a bottom margin if it's the very last element.
-    // However, the parent container (#standardResult) now has padding, so individual
-    // bottom margins on cards are primarily for spacing *between* them.
-    // The final `html += '</div>'` (the wrapper) was removed.
+    // Assemble in new order
+    html += warningsHtml;
+    html += avoidTechHtml;
+    html += feasibilityHtml; // Contains Project Estimates & Feasibility
+    html += techProfileHtml;
+    html += teamHtml;
 
     return html;
   }
