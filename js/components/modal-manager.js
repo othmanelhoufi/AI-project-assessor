@@ -113,11 +113,11 @@ export class ModalManager {
     const handleClose = () => {
       elements.modal.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
       elements.close.removeEventListener('click', handleClose);
-      elements.closeBtn.removeEventListener('click', handleClose);
+      // elements.closeBtn.removeEventListener('click', handleClose); // Removed for #reviewCloseBtn
     };
 
     elements.close.addEventListener('click', handleClose);
-    elements.closeBtn.addEventListener('click', handleClose);
+    // elements.closeBtn.addEventListener('click', handleClose); // Removed for #reviewCloseBtn
   }
 
   static _getModalElements(type) {
