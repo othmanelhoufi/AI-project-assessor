@@ -333,7 +333,7 @@
               "effects": {
                 "eta_multiplier": 1.0,
                 "scope_title": "PoC",
-                "feasibility": { "confidence": "High (for PoC)" },
+                "feasibility": { "confidence": "High" },
                 "summary": "PoC focuses on technical feasibility validation. Expect rough edges and manual processes.",
                 "deliverables": ["Technical feasibility report", "Basic working prototype", "Technology recommendations for next phase"],
                 "limitations": ["Limited scalability", "Manual processes acceptable", "Basic UI/UX"]
