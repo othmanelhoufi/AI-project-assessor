@@ -3,6 +3,7 @@
  */
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
+import { ResultRenderer } from './result-renderer.js'; // Import ResultRenderer
 
 export class ModalManager {
   static showAlert(message, title = CONSTANTS.MODAL_DEFAULTS.ALERT.title, icon = CONSTANTS.MODAL_DEFAULTS.ALERT.icon) {
@@ -166,112 +167,56 @@ export class ModalManager {
     questionsHtml += '</div>';
 
     // Generate result section
-    let resultHtml = '<div class="mt-8">';
+    let resultHtml = '<div class="mt-8 pt-6 border-t border-gray-200">'; // Added border for separation
+
     if (!result) {
       resultHtml += '<p class="text-gray-500">No assessment result available.</p>';
     } else {
-      const resultData = result;
-
-      // Handle insufficient information case
-      if (resultData.insufficientInfo) {
-        resultHtml += `
-          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h3 class="text-lg font-semibold text-yellow-800 mb-2">⚠️ Insufficient Information</h3>
-            <p class="text-yellow-700">${resultData.insufficientInfoMessage}</p>
-            ${resultData.uncertainAreas ? `
-              <div class="mt-2">
-                <p class="font-medium text-yellow-800">Areas needing clarification:</p>
-                <ul class="list-disc list-inside text-yellow-700">
-                  ${resultData.uncertainAreas.map(area => `<li>${area}</li>`).join('')}
-                </ul>
+      if (result.insufficientInfo) {
+          // Kept the replicated HTML for insufficientInfo for this fix, as per plan.
+          // This avoids needing to refactor ResultRenderer._renderInsufficientInfo immediately.
+          resultHtml += `
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-lg rounded-r-lg p-6 max-w-3xl mx-auto">
+              <div class="flex items-center mb-1">
+                <svg class="h-6 w-6 text-yellow-600 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd"/></svg>
+                <h3 class="text-xl font-semibold text-yellow-800">Insufficient Information for Full Assessment</h3>
               </div>
-            ` : ''}
-          </div>
-        `;
-      } else {
-        // Standard result
-        resultHtml += `
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 class="text-lg font-semibold text-blue-800 mb-2">📋 Assessment Summary</h3>
-            <p class="text-blue-700">${resultData.summary}</p>
-          </div>
-        `;
-        
-        // Feasibility
-        if (resultData.feasibility) {
-          resultHtml += `
-            <div class="mb-4">
-              <h4 class="font-medium text-gray-900">Risk Level: ${resultData.feasibility.risk}</h4>
-              <p>Confidence: ${resultData.feasibility.confidence}</p>
-              ${resultData.feasibility.summary ? `<p class="text-sm text-gray-600">${resultData.feasibility.summary}</p>` : ''}
-            </div>
-          `;
-        }
-
-        // Tech Profile
-        if (resultData.techProfile) {
-          resultHtml += `
-            <div class="mb-4">
-              <h4 class="font-medium text-gray-900 mb-2">Technology Profile</h4>
-              <table class="min-w-full border border-gray-200">
-                <thead>
-                  <tr class="bg-gray-50">
-                    <th class="border border-gray-200 px-3 py-2 text-left">Aspect</th>
-                    <th class="border border-gray-200 px-3 py-2 text-left">Recommendation</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${Object.entries(resultData.techProfile).map(([key, value]) => `
-                    <tr>
-                      <td class="border border-gray-200 px-3 py-2 font-medium">${this._formatAspectName(key)}</td>
-                      <td class="border border-gray-200 px-3 py-2">${value}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-
-        // Timeline
-        if (resultData.eta) {
-          resultHtml += `
-            <div class="mb-4">
-              <h4 class="font-medium text-gray-900">Timeline</h4>
-              <p>Total Duration (${resultData.scope_title || 'Project'}): ${
-                resultData.eta.min === resultData.eta.max
-                  ? `${resultData.eta.min} months`
-                  : `${resultData.eta.min}-${resultData.eta.max} months`
-              }</p>
-            </div>
-          `;
-        }
-
-        // Team Composition
-        if (resultData.roles) {
-          resultHtml += `
-            <div class="mb-4">
-              <h4 class="font-medium text-gray-900 mb-2">Required Team</h4>
-              <div class="space-y-2">
-                ${Object.entries(resultData.roles).map(([roleKey, role]) => `
-                  <div class="border border-gray-200 rounded p-3">
-                    <h5 class="font-medium">${role.title || roleKey}</h5>
-                    ${role.allocation ? `<p class="text-sm text-gray-600">Allocation: ${role.allocation}</p>` : ''}
-                    ${role.priority ? `<p class="text-sm text-gray-600">Priority: ${role.priority}</p>` : ''}
-                    ${role.experience ? `<p class="text-sm text-gray-600">Experience: ${role.experience}</p>` : ''}
-                    ${role.knowledge ? `<p class="text-sm text-gray-600">Knowledge: ${role.knowledge}</p>` : ''}
-                    ${role.criticalSkills ? `<p class="text-sm text-gray-600">Critical Skills: ${Array.isArray(role.criticalSkills) ? role.criticalSkills.join(', ') : role.criticalSkills}</p>` : ''}
+              <div class="ml-8">
+                <p class="text-sm text-yellow-700 mb-3">${result.insufficientInfoMessage || 'The assessment could not be fully generated due to missing or uncertain information in key areas.'}</p>
+                ${result.uncertainAreas && result.uncertainAreas.length > 0 ? `
+                  <div>
+                    <h4 class="text-sm font-semibold text-yellow-800 mb-1">Areas needing clarification:</h4>
+                    <ul class="space-y-1">
+                      ${result.uncertainAreas.map(area => `
+                        <li class="flex items-start text-sm text-yellow-700">
+                          <svg class="h-4 w-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                          <span>${area}</span>
+                        </li>`).join('')}
+                    </ul>
                   </div>
-                `).join('')}
+                ` : '<p class="text-sm text-yellow-600">No specific areas were highlighted, but some information was marked as uncertain.</p>'}
+                <p class="mt-4 text-sm text-yellow-700">Please review your answers, gather more details where needed, and then re-run the assessment.</p>
               </div>
             </div>
           `;
-        }
+      } else {
+          // For standard results, instantiate ResultRenderer and call its method
+          const localResultRenderer = new ResultRenderer();
+          resultHtml += localResultRenderer._generateStandardResultHTML(result);
       }
     }
     resultHtml += '</div>';
 
-    const htmlContent = questionsHtml + resultHtml;
+    const htmlContent = `
+      <div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
+        ${questionsHtml}
+      </div>
+      <div>
+        <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4 border-b pb-2">Assessment Result</h3>
+        ${resultHtml}
+      </div>
+    `;
     // --- End of existing HTML generation logic ---
     
     // No longer returning placeholder, as the function is now async.
@@ -279,10 +224,11 @@ export class ModalManager {
     return htmlContent;
   }
 
-  static _formatAspectName(key) {
-    // This is the correct content for _formatAspectName
-    return key.replace(/([A-Z])/g, ' $1')
-              .replace(/^./, str => str.toUpperCase())
-              .trim();
-  }
+  // Remove _formatAspectName from ModalManager as it's specific to ResultRenderer's old way
+  // static _formatAspectName(key) {
+  //   // This is the correct content for _formatAspectName
+  //   return key.replace(/([A-Z])/g, ' $1')
+  //             .replace(/^./, str => str.toUpperCase())
+  //             .trim();
+  // }
 }

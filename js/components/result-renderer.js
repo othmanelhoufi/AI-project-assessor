@@ -87,22 +87,22 @@ export class ResultRenderer {
   }
 
   _generateStandardResultHTML(result) {
-    let html = `
-      <div class="space-y-8 p-4 md:p-6 lg:p-8"> <!-- Adjusted padding for overall container -->
-        <!-- Header Card: Scope Title and Summary -->
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl rounded-xl p-6 md:p-8">
+    let html = ``; // Outermost wrapper removed
+
+        // Header Card: Scope Title and Summary
+        html += `
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl rounded-xl p-6 md:p-8 mb-6">
           <h2 class="text-xl md:text-2xl font-semibold text-indigo-200 mb-1">Assessment Report For:</h2>
           <p class="text-2xl md:text-3xl font-bold mb-3">${result.scope_title || 'Unnamed Project'}</p>
           <hr class="border-indigo-400/50 my-4">
           <h3 class="text-lg font-semibold text-indigo-200 mb-1">Key Summary:</h3>
           <p class="text-indigo-100 text-base">${result.summary || 'No summary provided.'}</p>
-        </div>
-    `;
+        </div>`;
 
     // Combined ETA and Feasibility Card
     if (result.eta || result.feasibility) {
       html += `
-        <div class="bg-white shadow-xl rounded-lg p-6">
+        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">📊</span> Project Estimates & Feasibility
           </h3>
@@ -123,7 +123,7 @@ export class ResultRenderer {
                 </div>
                 <div class="flex justify-between items-center">
                   <span class="font-medium text-gray-700">Confidence:</span>
-                  <span class="text-gray-800 font-medium">${result.feasibility.confidence}</span>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold ${this._getConfidenceBadgeClasses(result.feasibility.confidence)}">${result.feasibility.confidence}</span>
                 </div>
                 ${result.feasibility.summary ? `<p class="mt-3 text-xs text-gray-600 pt-3 border-t border-indigo-200/50">${result.feasibility.summary}</p>` : ''}
               </div>
@@ -153,7 +153,7 @@ export class ResultRenderer {
     // Technology Profile
     if (result.techProfile && Object.keys(result.techProfile).length > 0) {
       html += `
-        <div class="bg-white shadow-xl rounded-lg p-6">
+        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">🔧</span> Technology Profile
           </h3>
@@ -183,7 +183,7 @@ export class ResultRenderer {
     // Team Composition
     if (result.roles && Object.keys(result.roles).length > 0) {
       html += `
-        <div class="bg-white shadow-xl rounded-lg p-6">
+        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">👥</span> Required Team
           </h3>
@@ -209,7 +209,7 @@ export class ResultRenderer {
     // Warnings
     if (result.warnings && result.warnings.length > 0) {
       html += `
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-xl rounded-r-lg p-6">
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-xl rounded-r-lg p-6 mb-6">
           <h3 class="text-xl font-semibold text-yellow-800 mb-1 flex items-center">
             <svg class="h-6 w-6 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd"/></svg>
             Important Warnings
@@ -229,7 +229,7 @@ export class ResultRenderer {
     // Technologies to Avoid
     if (result.avoidTech && result.avoidTech.length > 0) {
       html += `
-        <div class="bg-red-50 border-l-4 border-red-400 shadow-xl rounded-r-lg p-6">
+        <div class="bg-red-50 border-l-4 border-red-400 shadow-xl rounded-r-lg p-6 mb-6">
           <h3 class="text-xl font-semibold text-red-800 mb-1 flex items-center">
             <svg class="h-6 w-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
             Technologies to Avoid
@@ -246,7 +246,11 @@ export class ResultRenderer {
       `;
     }
 
-    html += '</div>';
+    // Ensure the last card also has a bottom margin if it's the very last element.
+    // However, the parent container (#standardResult) now has padding, so individual
+    // bottom margins on cards are primarily for spacing *between* them.
+    // The final `html += '</div>'` (the wrapper) was removed.
+
     return html;
   }
 
@@ -263,6 +267,15 @@ export class ResultRenderer {
       case 'high': return 'bg-orange-100 text-orange-700 border border-orange-200';
       case 'very high': return 'bg-red-100 text-red-700 border border-red-200';
       default: return 'bg-gray-100 text-gray-700 border border-gray-200';
+    }
+  }
+
+  _getConfidenceBadgeClasses(confidenceLevel) {
+    switch (confidenceLevel?.toLowerCase()) {
+      case 'high': return 'bg-green-100 text-green-700 border border-green-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+      case 'low': return 'bg-red-100 text-red-700 border border-red-200';
+      default: return 'bg-gray-100 text-gray-700 border border-gray-200'; // Default for unspecified levels
     }
   }
 
