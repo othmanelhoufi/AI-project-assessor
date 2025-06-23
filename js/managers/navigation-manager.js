@@ -3,6 +3,7 @@
  */
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
+import { stateManager } from './state-manager.js';
 
 export class NavigationManager {
   constructor() {
@@ -38,6 +39,8 @@ export class NavigationManager {
 
         // NEW LOGIC: If clicking "New Assessment", reset the state first
         if (page === 'assessment' && this.wizardController) {
+          // Clear editingId before starting over to ensure a fresh assessment
+          stateManager.setState('editingId', null);
           this.wizardController.startOver();
         }
         

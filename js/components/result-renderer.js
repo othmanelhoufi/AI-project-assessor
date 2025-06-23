@@ -122,7 +122,7 @@ export class ResultRenderer {
                   <span class="px-3 py-1 rounded-full text-xs font-bold ${this._getRiskBadgeClasses(result.feasibility.risk)}">${result.feasibility.risk}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="font-medium text-gray-700">Confidence:</span>
+                  <span class="font-medium text-gray-700">Feasibility Confidence:</span>
                   <span class="px-3 py-1 rounded-full text-xs font-bold ${this._getConfidenceBadgeClasses(result.feasibility.confidence)}">${result.feasibility.confidence}</span>
                 </div>
                 ${result.feasibility.summary ? `<p class="mt-3 text-xs text-gray-600 pt-3 border-t border-indigo-200/50">${result.feasibility.summary}</p>` : ''}
@@ -272,10 +272,18 @@ export class ResultRenderer {
 
   _getConfidenceBadgeClasses(confidenceLevel) {
     switch (confidenceLevel?.toLowerCase()) {
-      case 'high': return 'bg-green-100 text-green-700 border border-green-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
-      case 'low': return 'bg-red-100 text-red-700 border border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border border-gray-200'; // Default for unspecified levels
+      case 'very high':
+        return 'bg-green-100 text-green-800 border border-green-300'; // Light Green
+      case 'high':
+        return 'bg-green-100 text-green-800 border border-green-300'; // Light Green
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-300'; // Yellow/Orange
+      case 'low':
+        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
+      case 'very low':
+        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
+      default:
+        return 'bg-gray-100 text-gray-700 border border-gray-300';    // Default
     }
   }
 
