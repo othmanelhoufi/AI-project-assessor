@@ -95,19 +95,19 @@ export class HistoryManager {
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 text-sm">
-            <div class="p-3 rounded-md"> {/* Removed bg-gray-50 and border */}
+            <div class="p-3 rounded-md">
               <span class="block text-xs font-medium text-gray-500 mb-0.5">Risk Level</span>
               <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${riskColorClasses}">${riskLevel}</span>
             </div>
-            <div class="p-3 rounded-md"> {/* Removed bg-gray-50 and border */}
+            <div class="p-3 rounded-md">
               <span class="block text-xs font-medium text-gray-500 mb-0.5">Feasibility</span>
               <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full ${confidenceColorClasses}">${confidenceLevel}</span>
             </div>
-            <div class="p-3 rounded-md"> {/* Removed bg-gray-50 and border */}
+            <div class="p-3 rounded-md">
               <span class="block text-xs font-medium text-gray-500 mb-0.5">Timeline</span>
               <span class="text-gray-800 font-medium">${timelineEstimate}</span>
             </div>
-            <div class="p-3 rounded-md"> {/* Removed bg-gray-50 and border */}
+            <div class="p-3 rounded-md">
               <span class="block text-xs font-medium text-gray-500 mb-0.5">Tech Category</span>
               <span class="text-gray-800 font-medium whitespace-normal break-words" title="${techCategory}">${techCategory}</span>
             </div>
