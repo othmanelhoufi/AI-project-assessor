@@ -116,7 +116,7 @@ export class ResultRenderer {
         <div class="flex items-start">
           <span class="text-3xl mr-4">${icon}</span>
           <div>
-            <h2 class="text-xl md:text-2xl font-semibold mb-2">Feasibility Outlook for: ${scopeTitle}</h2>
+            <h2 class="text-xl md:text-2xl font-semibold mb-2">Feasibility Outlook for ${scopeTitle}</h2>
             <p class="text-base">${cardText}</p>
           </div>
         </div>
