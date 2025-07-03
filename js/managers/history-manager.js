@@ -52,7 +52,7 @@ export class HistoryManager {
 
     const title = assessment.name || 'Untitled Assessment';
     const timestamp = assessment.date ? new Date(assessment.date).toLocaleDateString() : 'N/A';
-
+    
     const riskLevel = feasibility.risk || 'N/A';
     const riskColorClasses = this._getRiskBadgeClasses(riskLevel);
 
@@ -77,14 +77,14 @@ export class HistoryManager {
               <p class="text-xs text-gray-500 mt-1">Last updated: ${timestamp}</p>
             </div>
             <div class="flex space-x-2 flex-shrink-0">
-              <button
+              <button 
                 onclick="event.stopPropagation(); window.assessmentApp.editAssessment('${assessment.id}')"
                 title="Edit Assessment"
                 class="px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-100 border border-indigo-300 rounded-md hover:bg-indigo-500 transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-400"
               >
                 Edit
               </button>
-              <button
+              <button 
                 onclick="event.stopPropagation(); window.assessmentApp.deleteAssessment('${assessment.id}')"
                 title="Delete Assessment"
                 class="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-100 border border-red-300 rounded-md hover:bg-red-500 transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-400"
@@ -112,7 +112,7 @@ export class HistoryManager {
               <span class="text-gray-800 font-medium whitespace-normal break-words" title="${techCategory}">${techCategory}</span>
             </div>
           </div>
-
+          
           ${result.insufficientInfo ? `
             <div class="mt-3 p-2.5 bg-yellow-50 border border-yellow-300 rounded-md text-yellow-700 text-xs flex items-center">
               <svg class="h-4 w-4 mr-1.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd"/></svg>
@@ -147,13 +147,13 @@ export class HistoryManager {
 
   async _generateAssessmentDetailsHTML(assessment) {
     const { answers, result } = assessment;
-
+    
     let questionsHtml = '<div class="space-y-4">';
     if (answers && Object.keys(answers).length > 0) {
         for (const [questionId, answer] of Object.entries(answers)) {
             const question = DataService.getQuestionById(questionId); // DataService is now imported
             if (!question) continue;
-
+            
             const selectedOption = DataService.getOptionByValue(questionId, answer);
             const isUncertain = selectedOption?.is_uncertain || false;
 

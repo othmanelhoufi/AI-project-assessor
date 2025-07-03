@@ -24,7 +24,8 @@ export class WizardController {
       resultContainer: document.querySelector(DOM_SELECTORS.wizard.resultContainer),
       prevBtn: document.querySelector(DOM_SELECTORS.buttons.prev),
       nextBtn: document.querySelector(DOM_SELECTORS.buttons.next),
-      startOverBtn: document.querySelector(DOM_SELECTORS.buttons.startOver),
+      startOverNavBtn: document.querySelector(DOM_SELECTORS.buttons.startOverNav), // Changed
+      startOverResultBtn: document.querySelector(DOM_SELECTORS.buttons.startOverResult), // Added
       saveBtn: document.querySelector(DOM_SELECTORS.buttons.saveAssessment)
     };
   }
@@ -39,7 +40,8 @@ export class WizardController {
   _setupEventListeners() {
     this.elements.prevBtn?.addEventListener('click', () => this.goToPrevious());
     this.elements.nextBtn?.addEventListener('click', () => this.goToNext());
-    this.elements.startOverBtn?.addEventListener('click', () => this.startOver());
+    this.elements.startOverNavBtn?.addEventListener('click', () => this.startOver()); // Changed
+    this.elements.startOverResultBtn?.addEventListener('click', () => this.startOver()); // Added
     // The event listener for the save button is now active
     this.elements.saveBtn?.addEventListener('click', () => this.saveAssessment());
   }

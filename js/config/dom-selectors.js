@@ -29,7 +29,8 @@ export const DOM_SELECTORS = {
   buttons: {
     prev: '#prevBtn',
     next: '#nextBtn',
-    startOver: '#startOverBtn',
+    startOverNav: '#startOverNavBtn', // Changed from startOver
+    startOverResult: '#startOverResultBtn', // Added for result page button
     saveAssessment: '#saveAssessmentBtn'
   },
   results: {
