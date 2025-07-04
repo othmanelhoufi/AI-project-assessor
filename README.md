@@ -6,185 +6,97 @@ The **AI Project Assessment Tool** is a sophisticated web application designed t
 
 ### 🎯 Core Mission
 
-- **Fact-based recommendations**: Move beyond AI hype to provide realistic technology assessments
-- **Expert guidance**: Deliver professional-grade insights on AI project feasibility
-- **Risk identification**: Highlight potential issues and knowledge gaps early in the planning process
-- **Resource planning**: Provide accurate estimates for team composition and project duration
+- **Fact-based recommendations**: Move beyond AI hype to provide realistic technology assessments.
+- **Expert guidance**: Deliver professional-grade insights on AI project feasibility.
+- **Risk identification**: Highlight potential issues and knowledge gaps early in the planning process.
+- **Resource planning**: Provide accurate estimates for team composition and project duration.
 
 ## 🏗 Architecture Overview
 
-The application follows a modular, maintainable architecture with clear separation of concerns:
+The application follows a modular, maintainable architecture with clear separation of concerns. The data layer has been refactored from a single JSON file into a structured `data` directory for improved scalability and maintainability.
 
 ```
 AI-Project-Assessment/
 ├── index.html                    # Main HTML structure
-├── assessment_data.json          # Question data and decision logic
-├── js/                          # JavaScript modules
-│   ├── config/                  # Configuration files
-│   │   ├── dom-selectors.js     # Centralized DOM element selectors
-│   │   └── constants.js         # Application constants and settings
-│   ├── services/                # Business logic and data management
-│   │   ├── storage-service.js   # Local storage operations
-│   │   ├── data-service.js      # Assessment data loading and processing
+├── data/                         # NEW: Modular assessment data
+│   ├── categories.json           # Assessment questions and structure
+│   ├── rules.json                # Conditional logic and rules
+│   ├── roles.json                # Centralized team role definitions
+│   └── technologies.json         # Centralized technology profiles
+├── js/                           # JavaScript modules
+│   ├── config/                   # Configuration files
+│   │   ├── dom-selectors.js      # Centralized DOM element selectors
+│   │   └── constants.js          # Application constants and settings
+│   ├── services/                 # Business logic and data management
+│   │   ├── storage-service.js    # Local storage operations
+│   │   ├── data-service.js       # Assessment data loading and processing
 │   │   └── assessment-service.js # Core assessment logic and result generation
-│   ├── components/              # UI components and controllers
-│   │   ├── modal-manager.js     # Modal dialog system
-│   │   ├── wizard-controller.js # Main assessment flow orchestration
-│   │   ├── progress-tracker.js  # Progress indication and tracking
-│   │   └── result-renderer.js   # Assessment result display and formatting
-│   ├── managers/                # Application state and navigation
-│   │   ├── state-manager.js     # Centralized application state management
+│   ├── components/               # UI components and controllers
+│   │   ├── modal-manager.js      # Modal dialog system with PDF export
+│   │   ├── wizard-controller.js  # Main assessment flow orchestration
+│   │   ├── progress-tracker.js   # Progress indication and tracking
+│   │   └── result-renderer.js    # Assessment result display and formatting
+│   ├── managers/                 # Application state and navigation
+│   │   ├── state-manager.js      # Centralized application state management
 │   │   ├── navigation-manager.js # Page-level navigation and URL management
-│   │   └── history-manager.js   # Saved assessment management
-│   ├── utils/                   # Utility functions
-│   │   └── formatters.js        # Data formatting and presentation utilities
-│   └── main.js                  # Application entry point and initialization
-└── README.md                    # Project documentation
+│   │   └── history-manager.js    # Saved assessment management
+│   └── main.js                   # Application entry point and initialization
+└── README.md                     # Project documentation
 ```
 
 ## 📁 Detailed File Structure
 
+### 📊 Data Layer (`data/`)
+
+This new directory houses the core logic and content of the assessment, split into manageable files:
+- **`categories.json`**: Defines the structure of the assessment, including sections, questions, and their options. It links to roles and technologies via IDs.
+- **`rules.json`**: Contains all conditional rules that apply complex logic based on combinations of user answers.
+- **`roles.json`**: A centralized dictionary of all possible team roles (e.g., "ML Engineer," "Data Architect"), making them reusable and easy to manage.
+- **`technologies.json`**: A dedicated file for technology profiles and recommendations, referenced by IDs throughout the assessment.
+
 ### 🔧 Configuration Layer (`js/config/`)
 
-#### `dom-selectors.js`
-- **Purpose**: Centralized DOM element selectors
-- **Key Feature**: Single source of truth for all CSS selectors used throughout the application
-- **Benefits**: Easy maintenance, prevents selector duplication, enables quick UI changes
-
-#### `constants.js`
-- **Purpose**: Application-wide constants and configuration values
-- **Contents**: Storage keys, CSS classes, modal defaults, API endpoints
-- **Benefits**: Consistent configuration, easy environment switching
+- **`dom-selectors.js`**: Centralized DOM element selectors.
+- **`constants.js`**: Application-wide constants, including the path to the `data/` directory.
 
 ### 🔌 Services Layer (`js/services/`)
 
-#### `storage-service.js`
-- **Purpose**: Local storage management for persistence
-- **Key Functions**:
-  - Save/load assessment data and user responses
-  - Manage saved assessment history
-  - Handle storage errors gracefully
-- **Storage Strategy**: Uses browser localStorage with JSON serialization
-
-#### `data-service.js`
-- **Purpose**: Assessment data loading and processing
-- **Key Functions**:
-  - Fetch assessment questions from JSON file
-  - Flatten hierarchical question structure
-  - Provide question lookup utilities
-- **Data Flow**: JSON → Processing → State Management
-
-#### `assessment-service.js`
-- **Purpose**: Core assessment logic and result generation
-- **Key Functions**:
-  - Analyze user responses for uncertainty patterns
-  - Apply conditional rules and effects
-  - Generate technology recommendations
-  - Calculate project timelines and team requirements
-- **Logic**: Expert rule engine that processes answers through complex decision trees
+- **`storage-service.js`**: Manages local storage for saved assessment history.
+- **`data-service.js`**: **(Updated)** Now fetches and combines data from the multiple JSON files in the `data/` directory (`categories.json`, `rules.json`, etc.) to build the complete assessment model.
+- **`assessment-service.js`**: **(Updated)** The core assessment engine. It processes user answers against the structured data loaded by `DataService` to generate results.
 
 ### 🎨 Components Layer (`js/components/`)
 
-#### `wizard-controller.js`
-- **Purpose**: Main assessment flow orchestration
-- **Key Features**:
-  - Section-based question presentation (not single questions)
-  - Real-time answer validation and visual feedback
-  - Navigation between assessment sections
-  - Assessment completion and result display
-- **UI Logic**: Manages the multi-step wizard interface
-
-#### `modal-manager.js`
-- **Purpose**: Centralized modal dialog system
-- **Modal Types**:
-  - Alert modals for notifications
-  - Confirmation dialogs for destructive actions
-  - Input prompts for user data collection
-  - Review modals for detailed assessment viewing
-- **Benefits**: Consistent UX, promise-based API, keyboard navigation
-
-#### `progress-tracker.js`
-- **Purpose**: Visual progress indication and section tracking
-- **Features**:
-  - Section-based progress calculation
-  - Real-time progress bar updates
-  - Current section display
-- **UX Enhancement**: Keeps users informed about assessment completion status
-
-#### `result-renderer.js`
-- **Purpose**: Assessment result display and formatting
-- **Rendering Types**:
-  - Standard results with recommendations
-  - Insufficient information warnings
-  - Technology profiles and timelines
-  - Team composition breakdowns
-- **Features**: Rich HTML generation with proper styling and data formatting
+- **`wizard-controller.js`**: Orchestrates the main assessment flow.
+- **`modal-manager.js`**: **(Updated)** Manages all modal dialogs, including the new assessment review pop-up with its programmatic "Export to PDF" functionality.
+- **`progress-tracker.js`**: Tracks and displays user progress through the assessment sections.
+- **`result-renderer.js`**: Formats and displays the final assessment results.
 
 ### 🎛 Managers Layer (`js/managers/`)
 
-#### `state-manager.js`
-- **Purpose**: Centralized application state management
-- **Architecture**: Singleton pattern with event-driven updates
-- **Key Features**:
-  - Reactive state updates with listener notifications
-  - Assessment progress tracking
-  - Answer validation and completion checking
-- **Benefits**: Predictable state management, debugging capability
-
-#### `navigation-manager.js`
-- **Purpose**: Page-level navigation and URL management
-- **Features**:
-  - Multi-page SPA navigation
-  - Browser history integration
-  - Active page highlighting
-  - Assessment reset on "New Assessment" navigation
-- **UX**: Seamless navigation between Assessment, History, and Resources sections
-
-#### `history-manager.js`
-- **Purpose**: Saved assessment management
-- **Features**:
-  - Assessment list display with status indicators
-  - Edit/review/delete operations
-  - Assessment restoration for continued work
-- **Data Management**: Full CRUD operations for saved assessments
-
-### 🛠 Utilities Layer (`js/utils/`)
-
-#### `formatters.js`
-- **Purpose**: Data formatting and presentation utilities
-- **Functions**: Date formatting, text truncation, ID generation, string manipulation
-- **Benefits**: Consistent data presentation, reusable formatting logic
+- **`state-manager.js`**: Manages the application's central state.
+- **`navigation-manager.js`**: Handles page navigation.
+- **`history-manager.js`**: Manages the list of saved assessments.
 
 ### 🚀 Application Entry Point (`main.js`)
 
-- **Purpose**: Application initialization and global coordination
-- **Responsibilities**:
-  - Component initialization in correct order
-  - Global event listener setup
-  - Error handling for initialization failures
-  - Browser API integration (visibility changes, popstate events)
+- Initializes all modules and starts the application.
 
 ## 📊 Data Flow Architecture
 
+The data flow has been updated to reflect the new modular structure.
+
 ### 1. **Data Loading**
-```
-assessment_data.json → DataService → StateManager → UI Components
-```
+/data/*.json → DataService → StateManager → UI Components*The `DataService` now fetches all JSON files from the `/data/` directory and assembles them into the complete assessment data model in the `StateManager`.*
 
 ### 2. **User Interaction**
-```
-User Input → WizardController → StateManager → UI Updates
-```
+User Input → WizardController → StateManager → UI Updates*(This flow remains the same.)*
 
 ### 3. **Assessment Generation**
-```
-User Answers → AssessmentService → Result Object → ResultRenderer → Display
-```
+User Answers → AssessmentService → Result Object → ResultRenderer → Display*The `AssessmentService` now references the structured data (roles, technologies, rules) from the state to generate a more accurate and detailed result.*
 
 ### 4. **Persistence**
-```
-Assessment Data → StorageService → localStorage → History Display
-```
+Assessment Data → StorageService → localStorage → History Display*(This flow remains the same for user-saved assessments.)*
 
 ## 🎯 Key Features
 
