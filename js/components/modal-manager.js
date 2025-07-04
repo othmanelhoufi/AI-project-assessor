@@ -3,7 +3,9 @@
  */
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
-import { ResultRenderer } from './result-renderer.js'; // Import ResultRenderer
+import { ResultRenderer } from './result-renderer.js';
+// ADDED: Statically import DataService at the top of the module.
+import { DataService } from '../services/data-service.js';
 
 export class ModalManager {
   static showAlert(message, title = CONSTANTS.MODAL_DEFAULTS.ALERT.title, icon = CONSTANTS.MODAL_DEFAULTS.ALERT.icon) {
@@ -89,11 +91,8 @@ export class ModalManager {
       };
 
       const handleKeydown = (e) => {
-        if (e.key === 'Enter') {
-          handleOk();
-        } else if (e.key === 'Escape') {
-          handleCancel();
-        }
+        if (e.key === 'Enter') handleOk();
+        else if (e.key === 'Escape') handleCancel();
       };
 
       elements.cancel.addEventListener('click', handleCancel);
@@ -101,134 +100,279 @@ export class ModalManager {
       elements.field.addEventListener('keydown', handleKeydown);
     });
   }
-
+  
   static async showReviewModal(assessment) {
     const elements = this._getModalElements('review');
-    
+    if (!elements.modal) return;
+
     elements.title.textContent = `Assessment Review: ${assessment.name}`;
-    // Await the content generation
-    elements.content.innerHTML = await this._generateReviewContent(assessment);
+    elements.content.innerHTML = '<div class="text-center text-gray-500">Loading details...</div>';
     elements.modal.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
+
+    const contentHtml = await this._generateReviewContent(assessment);
+    elements.content.innerHTML = contentHtml;
 
     const handleClose = () => {
       elements.modal.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
       elements.close.removeEventListener('click', handleClose);
-      // elements.closeBtn.removeEventListener('click', handleClose); // Removed for #reviewCloseBtn
+      elements.closeBtn.removeEventListener('click', handleClose);
+      elements.exportPdfBtn.removeEventListener('click', handleExport);
+    };
+    
+    const handleExport = () => {
+      this._exportAssessmentToPdf(assessment, elements);
     };
 
     elements.close.addEventListener('click', handleClose);
-    // elements.closeBtn.addEventListener('click', handleClose); // Removed for #reviewCloseBtn
+    elements.closeBtn.addEventListener('click', handleClose);
+    elements.exportPdfBtn.addEventListener('click', handleExport);
   }
+
+  /**
+   * REWRITTEN: Handles the PDF export logic by programmatically generating the document.
+   * @param {object} assessment - The assessment data.
+   * @param {object} elements - The modal's DOM elements.
+   */
+  static _exportAssessmentToPdf(assessment, elements) {
+    const { jsPDF } = window.jspdf;
+    const { exportPdfBtn } = elements;
+    
+    const originalBtnContent = exportPdfBtn.innerHTML;
+    
+    exportPdfBtn.disabled = true;
+    exportPdfBtn.innerHTML = `
+      <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span>Exporting...</span>`;
+
+    try {
+      const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+      // REMOVED: The problematic 'require' call. DataService is now imported at the top.
+      const resultRenderer = new ResultRenderer();
+
+      let y = 20; // Initial y position
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+
+      const addPageIfNeeded = (spaceNeeded) => {
+        if (y + spaceNeeded > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      };
+
+      // --- PDF Header ---
+      doc.setFontSize(18);
+      doc.setTextColor(40);
+      doc.text("AI Project Assessment Report", margin, y);
+      y += 8;
+      doc.setFontSize(14);
+      doc.setTextColor(100);
+      doc.text(assessment.name, margin, y);
+      y += 6;
+      doc.setFontSize(10);
+      doc.text(`Date: ${new Date(assessment.date).toLocaleDateString()}`, margin, y);
+      y += 10;
+      doc.setDrawColor(200);
+      doc.line(margin, y, maxWidth + margin, y);
+      y += 10;
+
+      // --- Questions & Answers ---
+      doc.setFontSize(16);
+      doc.setTextColor(40);
+      doc.text("Questions & Answers", margin, y);
+      y += 8;
+
+      if (assessment.answers && Object.keys(assessment.answers).length > 0) {
+        for (const [questionId, answerValue] of Object.entries(assessment.answers)) {
+          const question = DataService.getQuestionById(questionId);
+          if (!question) continue;
+          
+          const selectedOption = DataService.getOptionByValue(questionId, answerValue);
+          const isUncertain = selectedOption?.is_uncertain || false;
+
+          addPageIfNeeded(15);
+          doc.setFontSize(11);
+          doc.setTextColor(50);
+          doc.setFont('helvetica', 'bold');
+          const questionLines = doc.splitTextToSize(question.text, maxWidth);
+          doc.text(questionLines, margin, y);
+          y += questionLines.length * 5;
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(isUncertain ? '#D97706' : '#059669'); // Amber-600 or Emerald-600
+          const answerText = `${isUncertain ? '⚠️ ' : '✓ '} ${selectedOption ? selectedOption.label : answerValue}`;
+          const answerLines = doc.splitTextToSize(answerText, maxWidth - 5);
+          doc.text(answerLines, margin + 5, y);
+          y += answerLines.length * 5 + 5;
+        }
+      } else {
+        addPageIfNeeded(10);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("No answers were recorded for this assessment.", margin, y);
+        y += 10;
+      }
+      
+      // --- Assessment Result ---
+      addPageIfNeeded(20);
+      doc.setFontSize(16);
+      doc.setTextColor(40);
+      doc.text("Assessment Result", margin, y);
+      y += 10;
+
+      if (assessment.result) {
+        const resultText = this._generateResultTextForPdf(assessment.result, resultRenderer);
+        const resultLines = doc.splitTextToSize(resultText, maxWidth);
+        
+        addPageIfNeeded(resultLines.length * 5);
+        doc.setFontSize(10);
+        doc.setTextColor(80);
+        doc.text(resultLines, margin, y);
+
+      } else {
+        addPageIfNeeded(10);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("No result was generated for this assessment.", margin, y);
+      }
+
+      // --- Save PDF ---
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const safeName = assessment.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const fileName = `${safeName}_${timestamp}.pdf`;
+      doc.save(fileName);
+
+    } catch (err) {
+      console.error("Error exporting to PDF:", err);
+      this.showAlert('Could not export to PDF. Please try again.', 'Export Error', '❌');
+    } finally {
+      // Restore button state
+      exportPdfBtn.disabled = false;
+      exportPdfBtn.innerHTML = originalBtnContent;
+    }
+  }
+  
+  /**
+   * NEW: Helper to generate a plain text representation of the result for the PDF.
+   */
+  static _generateResultTextForPdf(result, renderer) {
+      let text = '';
+      if (result.insufficientInfo) {
+          text += 'Insufficient Information for Full Assessment\n\n';
+          text += (result.insufficientInfoMessage || '') + '\n\n';
+          if (result.uncertainAreas && result.uncertainAreas.length > 0) {
+              text += 'Areas needing clarification:\n';
+              result.uncertainAreas.forEach(area => text += `- ${area}\n`);
+          }
+          return text;
+      }
+
+      // Feasibility & ETA
+      text += '--- Project Estimates & Feasibility ---\n';
+      if (result.feasibility) {
+          text += `Risk Level: ${result.feasibility.risk}\n`;
+          text += `Feasibility Confidence: ${result.feasibility.confidence}\n`;
+          if(result.feasibility.summary) text += `Summary: ${result.feasibility.summary}\n`;
+      }
+      if (result.eta) {
+          text += `Timeline Estimate: ${result.eta.min}-${result.eta.max} months for ${result.scope_title || 'Project'}\n\n`;
+      }
+
+      // Warnings
+      if (result.warnings && result.warnings.length > 0) {
+          text += '--- Important Warnings ---\n';
+          result.warnings.forEach(w => text += `- ${w}\n`);
+          text += '\n';
+      }
+
+      // Tech Profile
+      if (result.techProfile && Object.keys(result.techProfile).length > 0) {
+          text += '--- Technology Profile ---\n';
+          Object.entries(result.techProfile).forEach(([key, value]) => {
+              text += `${renderer._formatAspectName(key)}: ${value}\n`;
+          });
+          text += '\n';
+      }
+
+      // Team
+      if (result.roles && Object.keys(result.roles).length > 0) {
+          text += '--- Required Team ---\n';
+          Object.values(result.roles).forEach(role => {
+              text += `${role.title || 'Unknown Role'}:\n`;
+              if(role.allocation) text += `  - Allocation: ${role.allocation}\n`;
+              if(role.experience) text += `  - Experience: ${role.experience}\n`;
+              if(role.criticalSkills) text += `  - Skills: ${Array.isArray(role.criticalSkills) ? role.criticalSkills.join(', ') : role.criticalSkills}\n`;
+          });
+      }
+
+      return text;
+  }
+
 
   static _getModalElements(type) {
     const selectors = DOM_SELECTORS.modals[type];
     const elements = {};
-    
     for (const [key, selector] of Object.entries(selectors)) {
       elements[key] = document.querySelector(selector);
     }
-    
     return elements;
   }
 
-  static async _generateReviewContent(assessment) { // Made async
+  static async _generateReviewContent(assessment) {
+    // REMOVED: Dynamic import is no longer needed as it's imported statically.
+    const resultRenderer = new ResultRenderer();
     const { answers, result } = assessment;
-    
-    // Import DataService for question lookup
-    // Await the dynamic import
-    const { DataService } = await import('../services/data-service.js');
 
-    // Generate questions and answers section
     let questionsHtml = '<div class="space-y-4">';
-    // ... rest of the function remains largely the same, but it's now inside an async function
-    // and the .then() structure is removed.
-    // The generated HTML (questionsHtml + resultHtml) will be stored in a variable, let's call it htmlContent
-    // and then returned at the end of the function.
-    // For brevity, I'm not reproducing the entire HTML generation logic here,
-    // just showing the key change with async/await for the import.
+    if (answers && Object.keys(answers).length > 0) {
+      for (const [questionId, answerValue] of Object.entries(answers)) {
+        const question = DataService.getQuestionById(questionId);
+        if (!question) continue;
+        
+        const selectedOption = DataService.getOptionByValue(questionId, answerValue);
+        const isUncertain = selectedOption?.is_uncertain || false;
 
-    // --- Start of existing HTML generation logic (simplified for this diff) ---
-    for (const [questionId, answer] of Object.entries(answers)) {
-      const question = DataService.getQuestionById(questionId);
-      if (!question) continue;
-      
-      const selectedOption = DataService.getOptionByValue(questionId, answer);
-      const isUncertain = selectedOption?.is_uncertain || false;
-
-      questionsHtml += `
-        <div class="border-l-4 ${isUncertain ? 'border-yellow-400' : 'border-green-400'} pl-4">
-          <h4 class="font-medium text-gray-900">${question.text}</h4>
-          <p class="text-sm ${isUncertain ? 'text-yellow-700' : 'text-green-700'}">
-            ${isUncertain ? '⚠️ ' : '✓ '}${selectedOption ? selectedOption.label : answer}
-          </p>
-        </div>
-      `;
+        questionsHtml += `
+          <div class="border-l-4 ${isUncertain ? 'border-yellow-400 bg-yellow-50' : 'border-green-400 bg-green-50'} pl-4 py-2 rounded-r-md">
+            <h4 class="font-medium text-gray-800">${question.text}</h4>
+            <p class="text-sm ${isUncertain ? 'text-yellow-700' : 'text-green-700'}">
+              ${isUncertain ? '⚠️ ' : '✓ '} ${selectedOption ? selectedOption.label : answerValue}
+            </p>
+          </div>
+        `;
+      }
+    } else {
+      questionsHtml += '<p class="text-gray-500">No answers were recorded for this assessment.</p>';
     }
     questionsHtml += '</div>';
 
-    // Generate result section
-    let resultHtml = '<div class="mt-8 pt-6 border-t border-gray-200">'; // Added border for separation
-
-    if (!result) {
-      resultHtml += '<p class="text-gray-500">No assessment result available.</p>';
+    let resultHtml = '';
+    if (result) {
+      const tempContainer = document.createElement('div');
+      resultRenderer.elements.standardContainer = tempContainer;
+      resultRenderer.elements.insufficientWarning = tempContainer;
+      resultRenderer.render(result);
+      resultHtml = tempContainer.innerHTML;
     } else {
-      if (result.insufficientInfo) {
-          // Kept the replicated HTML for insufficientInfo for this fix, as per plan.
-          // This avoids needing to refactor ResultRenderer._renderInsufficientInfo immediately.
-          resultHtml += `
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-lg rounded-r-lg p-6 max-w-3xl mx-auto">
-              <div class="flex items-center mb-1">
-                <svg class="h-6 w-6 text-yellow-600 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd"/></svg>
-                <h3 class="text-xl font-semibold text-yellow-800">Insufficient Information for Full Assessment</h3>
-              </div>
-              <div class="ml-8">
-                <p class="text-sm text-yellow-700 mb-3">${result.insufficientInfoMessage || 'The assessment could not be fully generated due to missing or uncertain information in key areas.'}</p>
-                ${result.uncertainAreas && result.uncertainAreas.length > 0 ? `
-                  <div>
-                    <h4 class="text-sm font-semibold text-yellow-800 mb-1">Areas needing clarification:</h4>
-                    <ul class="space-y-1">
-                      ${result.uncertainAreas.map(area => `
-                        <li class="flex items-start text-sm text-yellow-700">
-                          <svg class="h-4 w-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                          <span>${area}</span>
-                        </li>`).join('')}
-                    </ul>
-                  </div>
-                ` : '<p class="text-sm text-yellow-600">No specific areas were highlighted, but some information was marked as uncertain.</p>'}
-                <p class="mt-4 text-sm text-yellow-700">Please review your answers, gather more details where needed, and then re-run the assessment.</p>
-              </div>
-            </div>
-          `;
-      } else {
-          // For standard results, instantiate ResultRenderer and call its method
-          const localResultRenderer = new ResultRenderer();
-          resultHtml += localResultRenderer._generateStandardResultHTML(result);
-      }
+      resultHtml = '<p class="text-gray-500">No result was generated for this assessment.</p>';
     }
-    resultHtml += '</div>';
 
-    const htmlContent = `
-      <div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
-        ${questionsHtml}
-      </div>
-      <div>
-        <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4 border-b pb-2">Assessment Result</h3>
-        ${resultHtml}
+    return `
+      <div class="space-y-8">
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
+          ${questionsHtml}
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Assessment Result</h3>
+          ${resultHtml}
+        </div>
       </div>
     `;
-    // --- End of existing HTML generation logic ---
-    
-    // No longer returning placeholder, as the function is now async.
-    // The caller will await the actual content.
-    return htmlContent;
   }
-
-  // Remove _formatAspectName from ModalManager as it's specific to ResultRenderer's old way
-  // static _formatAspectName(key) {
-  //   // This is the correct content for _formatAspectName
-  //   return key.replace(/([A-Z])/g, ' $1')
-  //             .replace(/^./, str => str.toUpperCase())
-  //             .trim();
-  // }
 }

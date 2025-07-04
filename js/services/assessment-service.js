@@ -71,11 +71,12 @@ export class AssessmentService {
    */
   static _generateStandardResult(answers, assessmentData) {
     // Initialize the result object with default values.
+    // UPDATED: Lowered the base timeline estimate for more realistic projections.
     const result = {
       summary: "Based on your responses, here's our assessment:",
       techProfile: {},
       roles: {},
-      eta: { min: 3, max: 6 }, // Base timeline estimate
+      eta: { min: 2, max: 4 }, // Base timeline estimate is now 2-4 months.
       feasibility: { risk: "Medium", confidence: "Medium" },
       warnings: [],
       avoidTech: [],

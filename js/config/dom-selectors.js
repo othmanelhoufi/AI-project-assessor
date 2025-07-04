@@ -29,8 +29,8 @@ export const DOM_SELECTORS = {
   buttons: {
     prev: '#prevBtn',
     next: '#nextBtn',
-    startOverNav: '#startOverNavBtn', // Changed from startOver
-    startOverResult: '#startOverResultBtn', // Added for result page button
+    startOverNav: '#startOverNavBtn',
+    startOverResult: '#startOverResultBtn',
     saveAssessment: '#saveAssessmentBtn'
   },
   results: {
@@ -70,7 +70,9 @@ export const DOM_SELECTORS = {
       title: '#reviewTitle',
       content: '#reviewContent',
       close: '#reviewClose',
-      closeBtn: '#reviewCloseBtn'
+      closeBtn: '#reviewCloseBtn',
+      // ADDED: Selector for the new export button
+      exportPdfBtn: '#reviewExportBtn'
     }
   }
 };
