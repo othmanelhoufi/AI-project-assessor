@@ -1,0 +1,223 @@
+[
+  {
+    "name": "Section 1: Problem Definition",
+    "description": "Define the core business problem and the intended scope of the project.",
+    "questions": [
+      {
+        "id": "primary_problem",
+        "text": "What is the primary business problem you're trying to solve?",
+        "options": [
+          { "value": "regression", "label": "Predict future values/trends (Regression)", "effects": { "techProfileId": "regression_ml", "roleIds": ["ml_engineer", "domain_expert"], "avoidTech": ["Generative AI / LLMs for the core prediction task", "Complex Deep Learning unless dealing with time-series with complex patterns"] }},
+          { "value": "classification", "label": "Classify/categorize items (Classification)", "effects": { "techProfileId": "classification_ml", "roleIds": ["ml_engineer"], "avoidTech": ["Generative AI / LLMs for straightforward classification"] }},
+          { "value": "nlp", "label": "Process and understand text (Natural Language Processing)", "effects": { "techProfileId": "nlp_general", "roleIds": ["ai_engineer_nlp"] }},
+          { "value": "computer_vision", "label": "Analyze images/videos (Computer Vision)", "effects": { "techProfileId": "computer_vision_general", "roleIds": ["cv_engineer"], "avoidTech": ["Training from scratch without massive datasets"] }},
+          { "value": "ocr", "label": "Extract text from documents (OCR)", "effects": { "techProfileId": "ocr_services", "roleIds": ["integration_engineer"], "eta": { "addMin": 1, "addMax": 2 }, "avoidTech": ["Building custom OCR models unless absolutely necessary"] }},
+          { "value": "information_retrieval", "label": "Search and retrieve information (Information Retrieval)", "effects": { "techProfileId": "rag_search", "roleIds": ["ai_engineer_rag", "data_engineer_etl"], "eta": { "addMin": 2, "addMax": 4 } }},
+          { "value": "content_generation", "label": "Generate content (Content Generation)", "effects": { "techProfileId": "generative_ai", "roleIds": ["ai_engineer_llm"], "eta": { "addMin": 1, "addMax": 3 } }},
+          { "value": "decision_support", "label": "Automate decision-making (Decision Support)", "effects": { "techProfileId": "decision_support", "roleIds": ["business_analyst"] }},
+          { "value": "anomaly_detection", "label": "Detect anomalies/fraud (Anomaly Detection)", "effects": { "techProfileId": "anomaly_detection", "roleIds": ["ml_engineer_anomaly"], "avoidTech": ["Supervised learning if anomalies are undefined or unlabeled"] }},
+          { "value": "optimization", "label": "Optimize processes (Optimization)", "effects": { "techProfileId": "optimization", "roleIds": ["operations_researcher"] }},
+          { "value": "data_processing", "label": "Big data processing/analytics (Data Processing)", "effects": { "techProfileId": "data_engineering", "roleIds": ["data_engineer_etl"] }},
+          { "value": "agentic_ai", "label": "Automate Complex Tasks (Agentic AI)", "effects": { "techProfileId": "agentic_ai", "roleIds": ["lead_architect", "research_engineer"], "eta": { "addMin": 6, "addMax": 18 }, "warnings": ["EXPERIMENTAL RISK: Agentic systems are unpredictable and represent frontier research", "NO PRODUCTION GUARANTEES: This technology is not ready for mission-critical applications"], "feasibility": { "risk": "Very High", "confidence": "Very Low" } }},
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 3 }
+        ]
+      },
+      {
+        "id": "project_scope",
+        "text": "What is the scope of this project?",
+        "options": [
+          { "value": "poc", "label": "Proof of Concept (PoC)", "effects": { "eta_multiplier": 1.0, "scope_title": "PoC", "feasibility": { "confidence": "High" } }},
+          { "value": "mvp", "label": "Minimum Viable Product (MVP)", "effects": { "eta_multiplier": 2.5, "scope_title": "MVP", "warnings": ["MVP requires production-grade engineering practices and basic MLOps"], "roleIds": ["ml_ops"], "feasibility": { "risk": "Medium" } }},
+          { "value": "production", "label": "Full Production Application", "effects": { "eta_multiplier": 4.0, "scope_title": "Production App", "warnings": ["Production scope requires enterprise-grade architecture, full MLOps, and ongoing maintenance planning"], "roleIds": ["ml_ops_sre", "security_engineer"], "feasibility": { "risk": "High" } }},
+          { "value": "no_idea", "label": "Unsure / To be defined", "is_uncertain": true, "uncertainty_weight": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Section 2: Data Assessment",
+    "description": "Evaluate the availability, type, volume, and quality of your data.",
+    "questions": [
+      {
+        "id": "data_type",
+        "text": "What type of data do you have?",
+        "options": [
+          { "value": "structured", "label": "Structured data (databases, spreadsheets, CSV files)", "effects": { "techProfileId": "data_processing_structured" }},
+          { "value": "unstructured_text", "label": "Unstructured text (documents, emails, social media)", "effects": { "techProfileId": "data_processing_text", "eta": { "addMin": 1, "addMax": 2 } }},
+          { "value": "images", "label": "Images/photos", "effects": { "techProfileId": "data_processing_images" }},
+          { "value": "video", "label": "Videos", "effects": { "warnings": ["Video processing is computationally expensive and requires specialized infrastructure"], "eta": { "addMin": 2, "addMax": 4 } }},
+          { "value": "audio", "label": "Audio files", "effects": { "warnings": ["Audio processing requires specialized models and significant computational resources"], "techProfileId": "data_processing_audio" }},
+          { "value": "iot_stream", "label": "Sensor data/IoT streams", "effects": { "techProfileId": "data_processing_iot", "roleIds": ["iot_engineer"] }},
+          { "value": "mixed", "label": "Mixed data types", "effects": { "warnings": ["Multi-modal data significantly increases architectural complexity"], "eta": { "addMin": 2, "addMax": 3 }, "roleIds": ["data_architect"] }},
+          { "value": "no_data", "label": "No existing data", "effects": { "warnings": ["CRITICAL BLOCKER: No data means no AI project. Data acquisition is the mandatory first step."], "eta": { "addMin": 3, "addMax": 8 }, "feasibility": { "risk": "Very High", "confidence": "Very Low" }, "roleIds": ["data_strategist"] }, "is_uncertain": true, "uncertainty_weight": 3 },
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2 }
+        ]
+      },
+      {
+        "id": "data_volume",
+        "text": "What is your data volume?",
+        "options": [
+          { "value": "under_1k_rec", "label": "Small (e.g., < 1,000 records or < 1 GB)", "effects": { "warnings": ["CRITICAL LIMITATION: Dataset is too small for robust deep learning models"], "avoidTech": ["Training deep learning models from scratch"], "techProfileId": "approach_small_data" }},
+          { "value": "1k_100k_rec", "label": "Medium (e.g., 1k-100k records or 1-50 GB)", "effects": { "techProfileId": "tools_medium_data" }},
+          { "value": "100k_plus_rec", "label": "Large (e.g., 100k+ records or 50-500 GB)", "effects": { "techProfileId": "processing_large_data" }},
+          { "value": "massive_tb", "label": "Very Large (e.g., millions of records or > 500 GB)", "effects": { "techProfileId": "processing_massive_data", "roleIds": ["data_engineer_senior", "data_architect"], "eta": { "addMin": 3, "addMax": 6 } }},
+          { "value": "streaming", "label": "Streaming/continuous data", "effects": { "techProfileId": "processing_streaming_data", "roleIds": ["streaming_engineer"], "eta": { "addMin": 4, "addMax": 8 } }},
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 1 }
+        ]
+      },
+      {
+        "id": "data_freshness",
+        "text": "How frequently is new data generated or updated?",
+        "options": [
+          { "value": "realtime", "label": "Real-time (< 1 minute)", "effects": { "techProfileId": "arch_realtime" }},
+          { "value": "daily", "label": "Daily", "effects": { "techProfileId": "arch_daily_batch" }},
+          { "value": "weekly_monthly", "label": "Weekly or Monthly", "effects": { "techProfileId": "arch_periodic_batch" }},
+          { "value": "static", "label": "Rarely or never (static dataset)", "effects": { "warnings": ["Model drift risk: Performance will degrade over time as real-world conditions change"] }},
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true }
+        ]
+      },
+      {
+        "id": "data_pii",
+        "text": "Does the data contain sensitive or regulated information (PII, PHI, etc.)?",
+        "options": [
+          { "value": "yes", "label": "Yes", "effects": { "warnings": ["SECURITY CRITICAL: Sensitive data requires comprehensive privacy and security protocols"], "roleIds": ["security_specialist", "legal_counsel"], "eta": { "addMin": 1, "addMax": 3 } }},
+          { "value": "no", "label": "No" },
+          { "value": "unsure", "label": "Unsure / Needs Audit", "is_uncertain": true, "uncertainty_weight": 2, "effects": { "warnings": ["Data sensitivity audit required before proceeding"] }}
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Section 3: Technical & Operational",
+    "description": "Assess technical requirements like accuracy, explainability, and operational constraints.",
+    "questions": [
+      {
+        "id": "accuracy_req",
+        "text": "What level of accuracy or performance is required?",
+        "options": [
+          { "value": "extreme", "label": "Extremely high (>99%, mission-critical)", "effects": { "avoidTech": ["Complex 'black box' models", "Generative AI if interpretable models suffice"], "warnings": ["EXTREME REQUIREMENTS: >99% accuracy dramatically increases complexity and may not be achievable"], "eta_multiplier": 3.0, "feasibility": { "risk": "Very High" } }},
+          { "value": "high", "label": "High (e.g., >95%, customer-facing)", "effects": { "eta_multiplier": 1.8 }},
+          { "value": "moderate", "label": "Moderate (e.g., >85%, internal tool to assist users)", "effects": { "eta_multiplier": 1.2 }},
+          { "value": "baseline", "label": "Better than the current baseline/human performance" },
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2 }
+        ]
+      },
+      {
+        "id": "explainability",
+        "text": "How important is model explainability (XAI)?",
+        "options": [
+          { "value": "critical", "label": "Critical (for regulatory compliance or user trust)", "effects": { "avoidTech": ["Complex 'black box' models", "Generative AI if interpretable models suffice"], "techProfileId": "xai_critical", "roleIds": ["xai_specialist"] }},
+          { "value": "important", "label": "Important for diagnostics and debugging", "effects": { "techProfileId": "xai_important" }},
+          { "value": "none", "label": "Not a priority ('Black Box' is acceptable)" },
+          { "value": "no_idea", "label": "Not Specified / No Idea", "is_uncertain": true, "uncertainty_weight": 1 }
+        ]
+      },
+      {
+        "id": "multi_lingual",
+        "text": "Are there multi-lingual or multi-regional requirements?",
+        "options": [
+          { "value": "no", "label": "No, single language and region" },
+          { "value": "multi_lingual", "label": "Yes, must support multiple languages", "effects": { "warnings": ["Multi-lingual support significantly increases data sourcing complexity"], "eta_multiplier": 2.0, "techProfileId": "multilingual_support" }},
+          { "value": "multi_regional", "label": "Yes, must support multiple regions/cultures", "effects": { "warnings": ["Multi-regional requirements require cultural bias analysis"], "eta_multiplier": 1.5, "roleIds": ["cultural_consultant"] }},
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true }
+        ]
+      },
+      {
+        "id": "operational_req",
+        "text": "What are the operational uptime requirements (SLA)?",
+        "options": [
+          { "value": "high_availability", "label": "High Availability (e.g., 99.9%+, 24/7)", "effects": { "techProfileId": "arch_ha", "roleIds": ["sre_engineer"], "eta": { "addMin": 3, "addMax": 6 }, "warnings": ["High availability requirements significantly increase infrastructure complexity and costs"] }},
+          { "value": "standard_hours", "label": "Standard Business Hours" },
+          { "value": "best_effort", "label": "Best Effort (No strict guarantees)" },
+          { "value": "not_specified", "label": "Not Specified", "is_uncertain": true, "uncertainty_weight": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Section 4: Business Context",
+    "description": "Understand the business goals, budget, and team capabilities.",
+    "questions": [
+      {
+        "id": "kpi",
+        "text": "What is the primary business Key Performance Indicator (KPI) this project is intended to improve?",
+        "options": [
+          { "value": "revenue", "label": "Increase Revenue (e.g., new product features)" },
+          { "value": "cost", "label": "Reduce Operational Costs (e.g., automation)" },
+          { "value": "csat", "label": "Improve Customer Satisfaction (e.g., personalization)" },
+          { "value": "risk_mitigation", "label": "Mitigate Risk (e.g., fraud detection)" },
+          { "value": "exploratory", "label": "Not Defined / Exploratory Research", "effects": { "feasibility": { "confidence": "Low", "risk": "High" }, "warnings": ["BUSINESS RISK: Project lacks clear business objectives"], "scope_title": "Research Investigation" }}
+        ]
+      },
+      {
+        "id": "budget",
+        "text": "What is your estimated budget for the initial project phase (3-6 months)?",
+        "options": [
+          { "value": "under_50k", "label": "Under $50,000", "effects": { "warnings": ["BUDGET CONSTRAINT: Very limited budget restricts scope to basic PoC or feasibility study"], "feasibility": { "risk": "High" } }},
+          { "value": "50k_200k", "label": "$50,000 - $200,000" },
+          { "value": "200k_500k", "label": "$200,000 - $500,000" },
+          { "value": "over_500k", "label": "Over $500,000" },
+          { "value": "no_budget", "label": "No defined budget", "effects": { "warnings": ["CRITICAL PLANNING GAP: Budget definition is essential for proper project scoping"], "is_uncertain": true, "uncertainty_weight": 3 }}
+        ]
+      },
+      {
+        "id": "team_expertise",
+        "text": "Do you have AI/ML expertise in your team?",
+        "options": [
+          { "value": "yes_expert", "label": "Yes, experienced data science team", "effects": { "roleIds": ["internal_liaison"] }},
+          { "value": "some_analytics", "label": "Some experience with basic analytics", "effects": { "roleIds": ["sr_ai_consultant"] }},
+          { "value": "none", "label": "No AI/ML expertise", "effects": { "warnings": ["HIGH RISK: No internal expertise creates dependency and maintenance challenges"], "roleIds": ["solutions_architect", "lead_ml_engineer", "technical_pm"], "feasibility": { "risk": "High" } }},
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2 }
+        ]
+      },
+      {
+        "id": "maintenance",
+        "text": "How will the system be maintained after deployment?",
+        "options": [
+          { "value": "client_mlops", "label": "The client has a dedicated MLOps team" },
+          { "value": "retainer", "label": "Requires a long-term retainer contract for our firm to maintain", "effects": { "warnings": ["Long-term maintenance contracts must be scoped and budgeted as separate phase"] }},
+          { "value": "static", "label": "The model will be static and rarely updated", "effects": { "warnings": ["PERFORMANCE DEGRADATION RISK: Model performance will degrade over time due to data drift"] }},
+          { "value": "automated_retraining", "label": "The system must be designed for automated retraining", "effects": { "techProfileId": "mlops_automated_retraining", "eta": { "addMin": 2, "addMax": 4 }, "roleIds": ["ml_ops"] }},
+          { "value": "no_idea", "label": "Maintenance has not been discussed", "is_uncertain": true, "uncertainty_weight": 2, "effects": { "warnings": ["CRITICAL PLANNING GAP: Maintenance strategy is essential for long-term success"] }}
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Section 5: Risk & Compliance",
+    "description": "Assess potential risks, error impacts, and regulatory constraints.",
+    "questions": [
+      {
+        "id": "error_impact",
+        "text": "What happens if the AI system makes a significant error?",
+        "options": [
+          { "value": "catastrophic", "label": "Catastrophic consequences (e.g., safety, legal, major financial loss)", "effects": { "warnings": ["MISSION-CRITICAL SYSTEM: Catastrophic error consequences require extreme validation measures"], "feasibility": { "risk": "Very High", "confidence": "Low" }, "roleIds": ["safety_engineer", "regulatory_specialist"], "eta": { "addMin": 6, "addMax": 18 } }},
+          { "value": "significant", "label": "Significant business impact (e.g., customer churn, moderate financial loss)", "effects": { "eta": { "addMin": 1, "addMax": 2 } }},
+          { "value": "moderate", "label": "Moderate impact, manageable (e.g., internal workflow disruption)" },
+          { "value": "low", "label": "Low impact, easily correctable" },
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2 }
+        ]
+      },
+      {
+        "id": "error_type_bias",
+        "text": "Is it more important to avoid False Positives or False Negatives?",
+        "options": [
+          { "value": "fn_critical", "label": "False Negatives are worse (e.g., missing a disease, a critical threat)", "effects": { "techProfileId": "tuning_high_recall" }},
+          { "value": "fp_critical", "label": "False Positives are worse (e.g., wrongly accusing a customer of fraud)", "effects": { "techProfileId": "tuning_high_precision" }},
+          { "value": "equal", "label": "Both are equally undesirable", "effects": { "techProfileId": "tuning_balanced" }},
+          { "value": "na", "label": "Not applicable / Not considered" }
+        ]
+      },
+      {
+        "id": "regulatory",
+        "text": "Are there strict regulatory or compliance requirements (e.g., GDPR, HIPAA, financial auditing)?",
+        "options": [
+          { "value": "strict", "label": "Yes, strict regulations apply", "effects": { "warnings": ["COMPLIANCE CRITICAL: Strict regulations significantly impact technology choices and timeline"], "roleIds": ["compliance_specialist", "legal_counsel"], "techProfileId": "compliance_strict", "eta": { "addMin": 2, "addMax": 6 } }},
+          { "value": "moderate", "label": "Moderate compliance or privacy needs", "effects": { "eta": { "addMin": 0.5, "addMax": 1 } }},
+          { "value": "none", "label": "No specific regulations beyond standard practice" },
+          { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2, "effects": { "warnings": ["Regulatory landscape assessment required"] }}
+        ]
+      }
+    ]
+  }
+]

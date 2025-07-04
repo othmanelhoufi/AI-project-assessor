@@ -292,7 +292,7 @@ export class ResultRenderer {
   }
 
   _formatAspectName(key) {
-    return key.replace(/([A-Z])/g, ' $1')
+    return  key.replace(/([A-Z])/g, ' $1')
               .replace(/^./, str => str.toUpperCase())
               .trim();
   }

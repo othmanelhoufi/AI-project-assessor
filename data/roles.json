@@ -1,0 +1,217 @@
+{
+  "ml_engineer": {
+    "title": "ML Engineer",
+    "allocation": "100%",
+    "priority": "Critical",
+    "experience": "Mid-level",
+    "knowledge": "Scikit-learn, XGBoost/LightGBM, Feature Engineering, Cross-validation",
+    "criticalSkills": ["Statistical validation", "Feature selection", "Model interpretability"]
+  },
+  "domain_expert": {
+    "title": "Domain Expert",
+    "allocation": "Consultation",
+    "priority": "High",
+    "knowledge": "Business context for feature engineering and validation"
+  },
+  "ai_engineer_nlp": {
+    "title": "AI Engineer (NLP)",
+    "allocation": "100%",
+    "priority": "Critical",
+    "knowledge": "Hugging Face Transformers, NLTK/spaCy, Embedding Models, Text preprocessing",
+    "criticalSkills": ["Model fine-tuning", "Text preprocessing", "Evaluation metrics for NLP"]
+  },
+  "cv_engineer": {
+    "title": "Computer Vision Engineer",
+    "allocation": "100%",
+    "priority": "Critical",
+    "knowledge": "PyTorch/TensorFlow, OpenCV, Transfer Learning, Data Augmentation",
+    "criticalSkills": ["Model architecture selection", "Data augmentation strategies", "GPU optimization"]
+  },
+  "integration_engineer": {
+    "title": "Integration Engineer",
+    "allocation": "70%",
+    "priority": "High",
+    "knowledge": "API Integration, JSON/Data Structuring, Quality Control Logic, Document processing pipelines"
+  },
+  "ai_engineer_rag": {
+    "title": "AI Engineer (RAG/Search)",
+    "allocation": "100%",
+    "priority": "Critical",
+    "knowledge": "Vector Databases (Pinecone, Weaviate), Embedding Models, LLM APIs",
+    "criticalSkills": ["Chunking strategies", "Embedding selection", "Retrieval optimization"]
+  },
+  "data_engineer_etl": {
+    "title": "Data Engineer",
+    "allocation": "50%",
+    "priority": "High",
+    "knowledge": "Data Ingestion Pipelines, Document Chunking, ETL for unstructured data"
+  },
+  "ai_engineer_llm": {
+    "title": "AI Engineer (LLM Specialist)",
+    "allocation": "100%",
+    "priority": "Critical",
+    "knowledge": "Prompt Engineering, LLM Fine-tuning, LLM APIs (OpenAI, Anthropic, etc.)",
+    "criticalSkills": ["Prompt optimization", "Output validation", "Bias detection"]
+  },
+  "business_analyst": {
+    "title": "Business Analyst",
+    "allocation": "Advisory",
+    "priority": "High",
+    "knowledge": "Decision process mapping, Business rules documentation"
+  },
+  "ml_engineer_anomaly": {
+    "title": "ML Engineer (Anomaly Detection)",
+    "allocation": "100%",
+    "priority": "Critical",
+    "experience": "Mid-level",
+    "knowledge": "Isolation Forest, LOF, Autoencoders, Statistical process control",
+    "criticalSkills": ["Threshold tuning", "False positive management", "Feature engineering for anomalies"]
+  },
+  "operations_researcher": {
+    "title": "Operations Research Scientist",
+    "allocation": "Advisory",
+    "priority": "Medium",
+    "knowledge": "Linear programming, Constraint optimization, Simulation"
+  },
+  "lead_architect": {
+    "title": "Lead AI Architect",
+    "allocation": "50%",
+    "priority": "Critical",
+    "experience": "Expert",
+    "knowledge": "Multi-agent systems, LLM orchestration, Safety mechanisms"
+  },
+  "research_engineer": {
+    "title": "Research Engineer",
+    "allocation": "100%",
+    "priority": "Critical",
+    "knowledge": "LLM Frameworks (LangChain, LlamaIndex), API Tooling, Autonomous Systems, Safety research"
+  },
+  "ml_ops": {
+    "title": "MLOps Engineer",
+    "allocation": "50%",
+    "priority": "High",
+    "experience": "Mid-level",
+    "knowledge": "CI/CD, Docker, Cloud Services, Model deployment"
+  },
+  "ml_ops_sre": {
+    "title": "MLOps/SRE Engineer",
+    "allocation": "100%",
+    "priority": "Critical",
+    "experience": "Senior",
+    "knowledge": "Kubernetes, Terraform, Monitoring (Prometheus/Grafana), On-call procedures"
+  },
+  "security_engineer": {
+    "title": "Security Engineer",
+    "allocation": "Consultation",
+    "priority": "High",
+    "knowledge": "Application security, Data protection, Compliance"
+  },
+  "iot_engineer": {
+    "title": "IoT Data Engineer",
+    "allocation": "Advisory",
+    "knowledge": "Streaming protocols, Time-series databases, Edge computing"
+  },
+  "data_architect": {
+    "title": "Data Architect",
+    "allocation": "Advisory",
+    "priority": "High",
+    "knowledge": "Multi-modal architectures, Data integration patterns"
+  },
+  "data_strategist": {
+    "title": "Data Strategy Consultant",
+    "allocation": "Critical",
+    "priority": "Immediate",
+    "knowledge": "Data acquisition, Partnership negotiations, Synthetic data"
+  },
+  "data_engineer_senior": {
+    "title": "Senior Data Engineer",
+    "allocation": "100%",
+    "experience": "Senior",
+    "priority": "Critical",
+    "knowledge": "Spark/Dask, Distributed Systems, Cloud Data Warehouses, Performance optimization"
+  },
+  "streaming_engineer": {
+    "title": "Streaming Data Engineer",
+    "allocation": "100%",
+    "priority": "Critical",
+    "knowledge": "Kafka, Flink, Stream processing patterns, Real-time ML"
+  },
+  "security_specialist": {
+    "title": "Security & Compliance Specialist",
+    "allocation": "Consultation",
+    "priority": "Critical",
+    "experience": "Senior",
+    "knowledge": "Data privacy regulations, Anonymization techniques, Security auditing"
+  },
+  "legal_counsel": {
+    "title": "Legal Counsel",
+    "allocation": "Advisory",
+    "priority": "High",
+    "knowledge": "Data protection laws, Compliance requirements"
+  },
+  "xai_specialist": {
+    "title": "Explainable AI Specialist",
+    "allocation": "50%",
+    "priority": "High",
+    "knowledge": "SHAP, LIME, Interpretable ML, Model documentation"
+  },
+  "cultural_consultant": {
+    "title": "Cultural/Regional Consultant",
+    "allocation": "Advisory",
+    "knowledge": "Regional cultural norms, Local regulations, Market differences"
+  },
+  "sre_engineer": {
+    "title": "Site Reliability Engineer",
+    "allocation": "100%",
+    "priority": "Critical",
+    "experience": "Senior",
+    "knowledge": "Kubernetes, Service mesh, Monitoring, Incident response"
+  },
+  "internal_liaison": {
+    "title": "Internal ML Team Liaison",
+    "allocation": "Coordination",
+    "priority": "Medium"
+  },
+  "sr_ai_consultant": {
+    "title": "Senior AI Consultant",
+    "allocation": "Advisory",
+    "priority": "High",
+    "knowledge": "AI/ML strategy, Team mentorship, Best practices training"
+  },
+  "solutions_architect": {
+    "title": "Solutions Architect",
+    "allocation": "High",
+    "priority": "Critical",
+    "knowledge": "End-to-end solution design, Technology selection"
+  },
+  "lead_ml_engineer": {
+    "title": "Lead ML Engineer",
+    "allocation": "100%",
+    "priority": "Critical",
+    "knowledge": "Full-stack ML development, MLOps, Production deployment"
+  },
+  "technical_pm": {
+    "title": "Technical Project Manager",
+    "allocation": "50%",
+    "priority": "Critical",
+    "knowledge": "AI project management, Stakeholder communication"
+  },
+  "safety_engineer": {
+    "title": "Safety Systems Engineer",
+    "allocation": "100%",
+    "priority": "Critical",
+    "knowledge": "Safety-critical systems, Formal verification, Risk analysis"
+  },
+  "regulatory_specialist": {
+    "title": "Regulatory Affairs Specialist",
+    "allocation": "Advisory",
+    "priority": "Critical",
+    "knowledge": "Industry regulations, Compliance frameworks, Approval processes"
+  },
+  "compliance_specialist": {
+    "title": "Compliance Specialist",
+    "allocation": "Consultation",
+    "priority": "Critical",
+    "knowledge": "Industry regulations, Audit requirements, Documentation standards"
+  }
+}

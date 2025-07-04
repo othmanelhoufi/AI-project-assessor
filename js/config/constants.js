@@ -3,7 +3,7 @@
  */
 export const CONSTANTS = {
   STORAGE_KEYS: {
-    ASSESSMENT_DATA: 'assessmentData',
+    // Note: We no longer store assessment data in localStorage to ensure fresh loads.
     SAVED_ASSESSMENTS: 'savedAssessments'
   },
   CSS_CLASSES: {
@@ -27,5 +27,6 @@ export const CONSTANTS = {
       placeholder: 'Enter text...'
     }
   },
-  DATA_URL: 'assessment_data.json'
+  // The DATA_URL now points to the directory containing the new JSON files.
+  DATA_URL: 'data/'
 };
