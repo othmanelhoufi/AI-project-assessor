@@ -4,8 +4,8 @@
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
 import { ResultRenderer } from './result-renderer.js';
-// ADDED: Statically import DataService at the top of the module.
 import { DataService } from '../services/data-service.js';
+// pdf-export-service.js is no longer used.
 
 export class ModalManager {
   static showAlert(message, title = CONSTANTS.MODAL_DEFAULTS.ALERT.title, icon = CONSTANTS.MODAL_DEFAULTS.ALERT.icon) {
@@ -120,7 +120,8 @@ export class ModalManager {
     };
     
     const handleExport = () => {
-      this._exportAssessmentToPdf(assessment, elements);
+      const contentWrapper = elements.content.querySelector('#pdf-content-wrapper');
+      this._exportAssessmentToPdf(assessment, contentWrapper, elements.exportPdfBtn);
     };
 
     elements.close.addEventListener('click', handleClose);
@@ -129,18 +130,16 @@ export class ModalManager {
   }
 
   /**
-   * REWRITTEN: Handles the PDF export logic by programmatically generating the document.
+   * REWRITTEN: Handles PDF export using html2pdf.js for a clean, what-you-see-is-what-you-get result.
    * @param {object} assessment - The assessment data.
-   * @param {object} elements - The modal's DOM elements.
+   * @param {HTMLElement} elementToExport - The HTML element to convert to PDF.
+   * @param {HTMLButtonElement} exportBtn - The export button element to show loading state.
    */
-  static _exportAssessmentToPdf(assessment, elements) {
-    const { jsPDF } = window.jspdf;
-    const { exportPdfBtn } = elements;
+  static async _exportAssessmentToPdf(assessment, elementToExport, exportBtn) {
+    const originalBtnContent = exportBtn.innerHTML;
     
-    const originalBtnContent = exportPdfBtn.innerHTML;
-    
-    exportPdfBtn.disabled = true;
-    exportPdfBtn.innerHTML = `
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = `
       <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -148,171 +147,30 @@ export class ModalManager {
       <span>Exporting...</span>`;
 
     try {
-      const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-      // REMOVED: The problematic 'require' call. DataService is now imported at the top.
-      const resultRenderer = new ResultRenderer();
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const safeName = (assessment.name || 'assessment').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const fileName = `${safeName}_report_${timestamp}.pdf`;
 
-      let y = 20; // Initial y position
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 15;
-      const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
-
-      const addPageIfNeeded = (spaceNeeded) => {
-        if (y + spaceNeeded > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
-        }
+      const opt = {
+        margin:       15, // Set margins
+        filename:     fileName,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false }, // Scale down canvas for better fit
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        // This tells html2pdf to avoid breaking elements with the 'avoid-break' class
+        pagebreak:    { mode: ['css', 'legacy'], avoid: '.avoid-break' }
       };
 
-      // --- PDF Header ---
-      doc.setFontSize(18);
-      doc.setTextColor(40);
-      doc.text("AI Project Assessment Report", margin, y);
-      y += 8;
-      doc.setFontSize(14);
-      doc.setTextColor(100);
-      doc.text(assessment.name, margin, y);
-      y += 6;
-      doc.setFontSize(10);
-      doc.text(`Date: ${new Date(assessment.date).toLocaleDateString()}`, margin, y);
-      y += 10;
-      doc.setDrawColor(200);
-      doc.line(margin, y, maxWidth + margin, y);
-      y += 10;
-
-      // --- Questions & Answers ---
-      doc.setFontSize(16);
-      doc.setTextColor(40);
-      doc.text("Questions & Answers", margin, y);
-      y += 8;
-
-      if (assessment.answers && Object.keys(assessment.answers).length > 0) {
-        for (const [questionId, answerValue] of Object.entries(assessment.answers)) {
-          const question = DataService.getQuestionById(questionId);
-          if (!question) continue;
-          
-          const selectedOption = DataService.getOptionByValue(questionId, answerValue);
-          const isUncertain = selectedOption?.is_uncertain || false;
-
-          addPageIfNeeded(15);
-          doc.setFontSize(11);
-          doc.setTextColor(50);
-          doc.setFont('helvetica', 'bold');
-          const questionLines = doc.splitTextToSize(question.text, maxWidth);
-          doc.text(questionLines, margin, y);
-          y += questionLines.length * 5;
-
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10);
-          doc.setTextColor(isUncertain ? '#D97706' : '#059669'); // Amber-600 or Emerald-600
-          const answerText = `${isUncertain ? '⚠️ ' : '✓ '} ${selectedOption ? selectedOption.label : answerValue}`;
-          const answerLines = doc.splitTextToSize(answerText, maxWidth - 5);
-          doc.text(answerLines, margin + 5, y);
-          y += answerLines.length * 5 + 5;
-        }
-      } else {
-        addPageIfNeeded(10);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text("No answers were recorded for this assessment.", margin, y);
-        y += 10;
-      }
-      
-      // --- Assessment Result ---
-      addPageIfNeeded(20);
-      doc.setFontSize(16);
-      doc.setTextColor(40);
-      doc.text("Assessment Result", margin, y);
-      y += 10;
-
-      if (assessment.result) {
-        const resultText = this._generateResultTextForPdf(assessment.result, resultRenderer);
-        const resultLines = doc.splitTextToSize(resultText, maxWidth);
-        
-        addPageIfNeeded(resultLines.length * 5);
-        doc.setFontSize(10);
-        doc.setTextColor(80);
-        doc.text(resultLines, margin, y);
-
-      } else {
-        addPageIfNeeded(10);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text("No result was generated for this assessment.", margin, y);
-      }
-
-      // --- Save PDF ---
-      const timestamp = new Date().toISOString().slice(0, 10);
-      const safeName = assessment.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const fileName = `${safeName}_${timestamp}.pdf`;
-      doc.save(fileName);
+      await html2pdf().set(opt).from(elementToExport).save();
 
     } catch (err) {
       console.error("Error exporting to PDF:", err);
       this.showAlert('Could not export to PDF. Please try again.', 'Export Error', '❌');
     } finally {
-      // Restore button state
-      exportPdfBtn.disabled = false;
-      exportPdfBtn.innerHTML = originalBtnContent;
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = originalBtnContent;
     }
   }
-  
-  /**
-   * NEW: Helper to generate a plain text representation of the result for the PDF.
-   */
-  static _generateResultTextForPdf(result, renderer) {
-      let text = '';
-      if (result.insufficientInfo) {
-          text += 'Insufficient Information for Full Assessment\n\n';
-          text += (result.insufficientInfoMessage || '') + '\n\n';
-          if (result.uncertainAreas && result.uncertainAreas.length > 0) {
-              text += 'Areas needing clarification:\n';
-              result.uncertainAreas.forEach(area => text += `- ${area}\n`);
-          }
-          return text;
-      }
-
-      // Feasibility & ETA
-      text += '--- Project Estimates & Feasibility ---\n';
-      if (result.feasibility) {
-          text += `Risk Level: ${result.feasibility.risk}\n`;
-          text += `Feasibility Confidence: ${result.feasibility.confidence}\n`;
-          if(result.feasibility.summary) text += `Summary: ${result.feasibility.summary}\n`;
-      }
-      if (result.eta) {
-          text += `Timeline Estimate: ${result.eta.min}-${result.eta.max} months for ${result.scope_title || 'Project'}\n\n`;
-      }
-
-      // Warnings
-      if (result.warnings && result.warnings.length > 0) {
-          text += '--- Important Warnings ---\n';
-          result.warnings.forEach(w => text += `- ${w}\n`);
-          text += '\n';
-      }
-
-      // Tech Profile
-      if (result.techProfile && Object.keys(result.techProfile).length > 0) {
-          text += '--- Technology Profile ---\n';
-          Object.entries(result.techProfile).forEach(([key, value]) => {
-              text += `${renderer._formatAspectName(key)}: ${value}\n`;
-          });
-          text += '\n';
-      }
-
-      // Team
-      if (result.roles && Object.keys(result.roles).length > 0) {
-          text += '--- Required Team ---\n';
-          Object.values(result.roles).forEach(role => {
-              text += `${role.title || 'Unknown Role'}:\n`;
-              if(role.allocation) text += `  - Allocation: ${role.allocation}\n`;
-              if(role.experience) text += `  - Experience: ${role.experience}\n`;
-              if(role.criticalSkills) text += `  - Skills: ${Array.isArray(role.criticalSkills) ? role.criticalSkills.join(', ') : role.criticalSkills}\n`;
-          });
-      }
-
-      return text;
-  }
-
 
   static _getModalElements(type) {
     const selectors = DOM_SELECTORS.modals[type];
@@ -324,10 +182,10 @@ export class ModalManager {
   }
 
   static async _generateReviewContent(assessment) {
-    // REMOVED: Dynamic import is no longer needed as it's imported statically.
     const resultRenderer = new ResultRenderer();
     const { answers, result } = assessment;
 
+    // Use 'avoid-break' class on elements we don't want to split across pages.
     let questionsHtml = '<div class="space-y-4">';
     if (answers && Object.keys(answers).length > 0) {
       for (const [questionId, answerValue] of Object.entries(answers)) {
@@ -338,7 +196,7 @@ export class ModalManager {
         const isUncertain = selectedOption?.is_uncertain || false;
 
         questionsHtml += `
-          <div class="border-l-4 ${isUncertain ? 'border-yellow-400 bg-yellow-50' : 'border-green-400 bg-green-50'} pl-4 py-2 rounded-r-md">
+          <div class="border-l-4 ${isUncertain ? 'border-yellow-400 bg-yellow-50' : 'border-green-400 bg-green-50'} pl-4 py-2 rounded-r-md avoid-break">
             <h4 class="font-medium text-gray-800">${question.text}</h4>
             <p class="text-sm ${isUncertain ? 'text-yellow-700' : 'text-green-700'}">
               ${isUncertain ? '⚠️ ' : '✓ '} ${selectedOption ? selectedOption.label : answerValue}
@@ -362,15 +220,24 @@ export class ModalManager {
       resultHtml = '<p class="text-gray-500">No result was generated for this assessment.</p>';
     }
 
+    // This wrapper is the element that will be passed to html2pdf
     return `
-      <div class="space-y-8">
-        <div>
-          <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
-          ${questionsHtml}
+      <div id="pdf-content-wrapper" class="p-4">
+        <div class="avoid-break mb-8">
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">AI Project Assessment Report</h1>
+          <p class="text-sm text-gray-600">For: ${assessment.name || 'Untitled Assessment'}</p>
+          <p class="text-xs text-gray-400">Date: ${new Date(assessment.date).toLocaleDateString()}</p>
         </div>
-        <div>
-          <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Assessment Result</h3>
-          ${resultHtml}
+        
+        <div class="space-y-10">
+          <div class="avoid-break">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
+            ${questionsHtml}
+          </div>
+          <div class="avoid-break">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Assessment Result</h3>
+            ${resultHtml}
+          </div>
         </div>
       </div>
     `;

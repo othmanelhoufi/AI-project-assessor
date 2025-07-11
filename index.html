@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Project Assessment Tool</title>
-    <!-- UPDATED: Removed html2canvas, as it's no longer needed -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -22,7 +21,6 @@
     </script>
 </head>
 <body class="bg-gray-50 font-sans">
-    <!-- Navigation -->
     <nav class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-4">
@@ -49,10 +47,8 @@
         </div>
     </nav>
 
-    <!-- Assessment Page -->
     <div id="page-assessment" class="page">
         <div class="max-w-4xl mx-auto px-4 py-8">
-            <!-- Header -->
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-gray-900 mb-4">AI Project Assessment</h2>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -74,9 +70,7 @@
                 </div>
             </div>
 
-            <!-- Wizard Container -->
             <div id="wizardContainer" class="bg-white rounded-lg shadow-sm border">
-                <!-- Start Screen -->
                 <div id="wizardStart" class="p-8 text-center">
                     <div class="mb-6">
                         <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -90,7 +84,6 @@
                     </button>
                 </div>
 
-                <!-- Progress Bar -->
                 <div id="progressBarContainer" class="hidden px-8 pt-6">
                     <div class="flex justify-between items-center mb-2">
                         <span id="progressText" class="text-sm font-medium text-gray-700"></span>
@@ -101,10 +94,8 @@
                     </div>
                 </div>
 
-                <!-- Question Container -->
                 <div id="questionContainer" class="hidden p-8"></div>
 
-                <!-- Navigation -->
                 <div id="wizardNav" class="hidden flex justify-between items-center p-6 bg-gray-50 border-t">
                     <button id="prevBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors">
                         ← Previous
@@ -117,19 +108,12 @@
                     </button>
                 </div>
 
-                <!-- Assessment Result (with buttons moved inside) -->
                 <div id="assessmentResult" class="hidden">
-                <!-- Insufficient Info Warning -->
                 <div id="insufficientInfoWarning" class="hidden">
-                    <!-- Populated by JS -->
-                </div>
+                    </div>
                 
-                <!-- Standard Result -->
-                <div id="standardResult" class="hidden p-4 md:p-6 lg:p-8"> <!-- Added padding here -->
-                    <!-- Populated by JS -->
-                </div>
+                <div id="standardResult" class="hidden p-4 md:p-6 lg:p-8"> </div>
                 
-                <!-- Action Buttons (Now correctly placed inside the result container) -->
                 <div class="flex justify-center space-x-4 mt-8 mb-8">
                     <button 
                     id="startOverResultBtn" 
@@ -151,7 +135,6 @@
         </div>
     </div>
 
-    <!-- Previous Assessments Page -->
     <div id="page-history" class="page hidden">
         <div class="max-w-6xl mx-auto px-4 py-8">
             <div class="flex justify-between items-center mb-8">
@@ -166,7 +149,6 @@
         </div>
     </div>
 
-    <!-- Resources Page -->
     <div id="page-resources" class="page hidden">
         <div class="max-w-4xl mx-auto px-4 py-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-8">Resources & Best Practices</h2>
@@ -204,9 +186,6 @@
         </div>
     </div>
 
-    <!-- Custom Modal Components -->
-    
-    <!-- Confirmation Modal -->
     <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div class="p-6">
@@ -231,7 +210,6 @@
         </div>
     </div>
 
-    <!-- Input Modal -->
     <div id="inputModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div class="p-6">
@@ -260,7 +238,6 @@
         </div>
     </div>
 
-    <!-- Alert Modal -->
     <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div class="p-6">
@@ -282,7 +259,6 @@
         </div>
     </div>
     
-    <!-- Review Assessment Modal -->
     <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
@@ -290,8 +266,7 @@
                     <h2 id="reviewTitle" class="text-xl font-semibold text-gray-800">Assessment Review</h2>
                     <button id="reviewClose" class="text-gray-500 hover:text-gray-800 text-3xl font-light leading-none">&times;</button>
                 </div>
-                <div id="reviewContent" class="overflow-y-auto p-6 flex-grow bg-white">
-                    <!-- Content will be populated by JavaScript -->
+                <div id="reviewContent" class="overflow-y-auto p-8 flex-grow bg-white">
                     <div class="text-center text-gray-500">Loading...</div>
                 </div>
                 <div class="flex justify-between items-center p-4 border-t bg-gray-50 rounded-b-lg">
@@ -309,7 +284,6 @@
         </div>
     </div>
 
-
     <script type="module" src="js/main.js"></script>
-</body>
+    </body>
 </html>
