@@ -10,12 +10,19 @@ export class ResultRenderer {
       insufficientWarning: document.querySelector(DOM_SELECTORS.results.insufficientWarning),
       standardContainer: document.querySelector(DOM_SELECTORS.results.standardContainer)
     };
+    // NEW: Properties to manage the slideshow state
+    this.aiPlanSlides = [];
+    this.currentAiPlanSlide = 0;
   }
 
   init() {
-    // No initialization needed
+    // No initialization needed, but we ensure event listeners are added after rendering.
   }
 
+  /**
+   * REVISED: The main render method now calls a function to attach event listeners
+   * for the new slideshow after the HTML has been added to the DOM.
+   */
   render(result) {
     if (!result) {
       this._renderError();
@@ -26,6 +33,8 @@ export class ResultRenderer {
       this._renderInsufficientInfo(result);
     } else {
       this.elements.standardContainer.innerHTML = this._generateStandardResultHTML(result);
+      // NEW: Attach event listeners for the slideshow after rendering the content.
+      this._attachSlideshowEvents();
     }
   }
 
@@ -95,38 +104,9 @@ export class ResultRenderer {
   }
 
   /**
-   * REVISED: A more robust markdown parser to handle paragraphs, lists, and headings.
+   * REWRITTEN: The HTML structure is now dynamically generated based on whether
+   * there are warnings or technologies to avoid, creating a more adaptive layout.
    */
-  _simpleMarkdownToHtml(markdown) {
-    if (!markdown) return '';
-
-    const blocks = markdown.trim().split(/\n\n+/);
-
-    return blocks.map(block => {
-        // Process headings first
-        if (block.startsWith('### ')) return `<h3>${block.substring(4)}</h3>`;
-        if (block.startsWith('## ')) return `<h2>${block.substring(3)}</h2>`;
-        if (block.startsWith('# ')) return `<h1>${block.substring(2)}</h1>`;
-
-        // Process lists
-        if (block.startsWith('* ') || block.startsWith('- ')) {
-            const items = block.split('\n').map(item => {
-                const content = item.replace(/^[\*\-]\s*/, '');
-                // Process inline markdown within list items
-                return `<li>${content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')}</li>`;
-            }).join('');
-            return `<ul>${items}</ul>`;
-        }
-        
-        // Process paragraphs with inline markdown
-        let p = block.replace(/\n/g, '<br />'); // Handle single newlines within a paragraph block
-        p = p.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        p = p.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-        return `<p>${p}</p>`;
-    }).join('');
-  }
-
   _generateStandardResultHTML(result) {
     const headerCardHtml = this._generateDynamicHeaderCard(result);
     const aiPlanHtml = this._generateAIPlanHTML(result);
@@ -136,20 +116,46 @@ export class ResultRenderer {
     const techProfileHtml = this._generateTechProfileHTML(result);
     const teamHtml = this._generateTeamHTML(result);
 
+    const hasSideContent = (result.warnings && result.warnings.length > 0) || (result.avoidTech && result.avoidTech.length > 0);
+
+    let mainContentHtml;
+
+    if (hasSideContent) {
+      // If there are warnings, use the two-column layout
+      mainContentHtml = `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div class="lg:col-span-2 space-y-8">
+            ${feasibilityHtml}
+            ${techProfileHtml}
+          </div>
+          <div class="lg:col-span-1 space-y-8">
+            ${warningsHtml}
+            ${avoidTechHtml}
+          </div>
+        </div>
+      `;
+    } else {
+      // If no warnings, use a single-column layout where each item is full-width
+      mainContentHtml = `
+        <div class="space-y-8">
+          ${feasibilityHtml}
+          ${techProfileHtml}
+        </div>
+      `;
+    }
+
     const finalHtml = `
         <div class="space-y-8">
+            <!-- 1. Header Card (Full Width) -->
             ${headerCardHtml}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <div class="lg:col-span-2 space-y-8">
-                    ${techProfileHtml}
-                    ${teamHtml}
-                </div>
-                <div class="lg:col-span-1 space-y-8">
-                    ${feasibilityHtml}
-                    ${warningsHtml}
-                    ${avoidTechHtml}
-                </div>
-            </div>
+
+            <!-- 2. Main Content (Dynamic Layout) -->
+            ${mainContentHtml}
+
+            <!-- 3. Required Team (Full Width) -->
+            ${teamHtml}
+
+            <!-- 4. AI Plan Slideshow (Full Width) -->
             ${aiPlanHtml}
         </div>
     `;
@@ -160,28 +166,107 @@ export class ResultRenderer {
   _generateAIPlanHTML(result) {
     if (!result.aiPlanStatus) return '';
 
-    let html = `
+    // Handle skipped or error states first
+    if (result.aiPlanStatus === 'error') {
+      return `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert"><strong>Error:</strong><p>${result.aiGeneratedPlan}</p></div>`;
+    }
+    if (result.aiPlanStatus === 'skipped') {
+      return `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert"><p>The AI plan was skipped because a project description was not provided. Please start over and fill in the description to use this feature.</p></div>`;
+    }
+
+    // Split the markdown content into slides using the H3 heading as a delimiter.
+    this.aiPlanSlides = result.aiGeneratedPlan.split(/(?=###\s)/g).filter(s => s.trim() !== '');
+    this.currentAiPlanSlide = 0;
+
+    // If splitting fails or there's no content, show a fallback.
+    if (this.aiPlanSlides.length === 0) {
+      return `<div class="prose prose-blue max-w-none bg-gray-50 p-6 rounded-md border">${marked.parse(result.aiGeneratedPlan)}</div>`;
+    }
+
+    // Build the slideshow structure
+    return `
         <div class="bg-white shadow-xl rounded-lg p-6 border border-gray-200">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-3 text-2xl">🤖</span> AI-Generated Strategic Plan
           </h3>
-          <p class="text-sm text-gray-500 mb-4">The following plan was generated by an AI assistant based on your input. Review it as a starting point for your project strategy.</p>
-          <div class="prose prose-blue max-w-none bg-gray-50 p-6 rounded-md border">
-    `;
+          <p class="text-sm text-gray-500 mb-4">The following plan was generated by an AI assistant. Use the arrows to navigate through the sections.</p>
+          
+          <div id="ai-plan-slideshow" class="relative">
+            <div id="ai-plan-slides-container" class="bg-gray-50 p-6 rounded-md border prose prose-blue max-w-none min-h-[300px] transition-opacity duration-300 ease-in-out">
+              <!-- The first slide is rendered initially -->
+              ${marked.parse(this.aiPlanSlides[0] || '')}
+            </div>
 
-    switch (result.aiPlanStatus) {
-      case 'success':
-        html += this._simpleMarkdownToHtml(result.aiGeneratedPlan);
-        break;
-      case 'error':
-        html += `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert"><strong>Error:</strong><p>${result.aiGeneratedPlan}</p></div>`;
-        break;
-      case 'skipped':
-        html += `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert"><p>The AI plan was skipped because a project description was not provided. Please start over and fill in the description to use this feature.</p></div>`;
-        break;
+            <!-- Navigation Controls -->
+            <div class="flex justify-between items-center mt-4">
+                <button id="ai-plan-prev-btn" class="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors rounded-lg flex items-center">
+                    <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Previous
+                </button>
+                <div id="ai-plan-counter" class="text-sm font-medium text-gray-600">
+                    Section 1 of ${this.aiPlanSlides.length}
+                </div>
+                <button id="ai-plan-next-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center">
+                    Next
+                    <svg class="h-5 w-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+          </div>
+        </div>
+    `;
+  }
+
+  _attachSlideshowEvents() {
+    const slideshow = document.getElementById('ai-plan-slideshow');
+    if (!slideshow) return;
+
+    const prevBtn = document.getElementById('ai-plan-prev-btn');
+    const nextBtn = document.getElementById('ai-plan-next-btn');
+
+    prevBtn?.addEventListener('click', () => this._changeAiPlanSlide(-1));
+    nextBtn?.addEventListener('click', () => this._changeAiPlanSlide(1));
+
+    this._updateSlideshowControls(); // Set initial button states
+  }
+
+  _changeAiPlanSlide(direction) {
+    const newIndex = this.currentAiPlanSlide + direction;
+    if (newIndex >= 0 && newIndex < this.aiPlanSlides.length) {
+      this.currentAiPlanSlide = newIndex;
+      this._renderCurrentAiPlanSlide();
+      this._updateSlideshowControls();
     }
-    html += `</div></div>`;
-    return html;
+  }
+
+  _renderCurrentAiPlanSlide() {
+    const container = document.getElementById('ai-plan-slides-container');
+    if (!container) return;
+
+    // Fade out
+    container.style.opacity = '0';
+
+    // Wait for the fade-out transition to finish, then update content and fade in.
+    setTimeout(() => {
+      container.innerHTML = marked.parse(this.aiPlanSlides[this.currentAiPlanSlide] || '');
+      // Fade in
+      container.style.opacity = '1';
+    }, 150);
+  }
+
+  _updateSlideshowControls() {
+    const prevBtn = document.getElementById('ai-plan-prev-btn');
+    const nextBtn = document.getElementById('ai-plan-next-btn');
+    const counter = document.getElementById('ai-plan-counter');
+
+    if (prevBtn) {
+      prevBtn.disabled = this.currentAiPlanSlide === 0;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = this.currentAiPlanSlide >= this.aiPlanSlides.length - 1;
+    }
+    if (counter) {
+      counter.textContent = `Section ${this.currentAiPlanSlide + 1} of ${this.aiPlanSlides.length}`;
+    }
   }
 
   _generateDynamicHeaderCard(result) {
@@ -220,9 +305,6 @@ export class ResultRenderer {
       </div>`;
   }
 
-  /**
-   * REVISED: Uses a consistent card design for warnings.
-   */
   _generateWarningsHTML(result) {
     if (!result.warnings || result.warnings.length === 0) return '';
     return `
@@ -242,9 +324,6 @@ export class ResultRenderer {
       `;
   }
 
-  /**
-   * REVISED: Uses a consistent card design for technologies to avoid.
-   */
   _generateAvoidTechHTML(result) {
     if (!result.avoidTech || result.avoidTech.length === 0) return '';
     return `
