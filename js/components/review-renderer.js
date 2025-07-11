@@ -66,7 +66,7 @@ export class ReviewRenderer {
       <div id="pdf-content-wrapper" class="p-4">
         <div class="avoid-break mb-8 text-center">
           <h1 class="text-3xl font-bold text-gray-900 mb-2">AI Project Assessment Report</h1>
-          <p class="text-lg text-gray-600">For: ${assessment.name || 'Untitled Assessment'}</p>
+          <p class="text-lg text-gray-600">${assessment.name || 'Untitled Assessment'}</p>
           <p class="text-sm text-gray-400">Date: ${new Date(assessment.date).toLocaleDateString()}</p>
         </div>
         

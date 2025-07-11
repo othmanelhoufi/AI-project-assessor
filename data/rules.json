@@ -17,6 +17,14 @@
     }
   },
   {
+    "conditions": { "primary_problem": ["classification", "regression"], "data_labeling": ["unlabeled"] },
+    "effects": {
+        "warnings": ["CRITICAL MISMATCH: Supervised learning (Classification/Regression) is not possible with unlabeled data. A data annotation phase is a mandatory prerequisite."],
+        "feasibility": { "risk": "Very High", "confidence": "Very Low" },
+        "avoidTech": ["Directly applying supervised learning models."]
+    }
+  },
+  {
     "conditions": { "budget": ["under_50k"], "project_scope": ["mvp", "production"] },
     "effects": {
       "warnings": [

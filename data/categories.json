@@ -54,6 +54,17 @@
         ]
       },
       {
+        "id": "data_labeling",
+        "text": "Is your data labeled for the specific outcome you want to predict?",
+        "options": [
+            { "value": "fully_labeled", "label": "Yes, fully labeled and ready for supervised learning.", "effects": { "feasibility": { "risk": "Low" } } },
+            { "value": "partially_labeled", "label": "Partially labeled, will require some annotation effort.", "effects": { "warnings": ["Data annotation will add to project cost and timeline."], "eta": { "addMin": 1, "addMax": 3 }, "roleIds": ["data_annotator"] } },
+            { "value": "unlabeled", "label": "No, completely unlabeled, will require significant annotation or an unsupervised approach.", "effects": { "warnings": ["CRITICAL: Data labeling is a major project in itself and can be costly and time-consuming. Unsupervised methods should be considered."], "eta": { "addMin": 2, "addMax": 6 }, "roleIds": ["data_annotator", "domain_expert"], "feasibility": { "risk": "High" }, "avoidTech": ["Supervised learning until data is labeled."] } },
+            { "value": "not_applicable", "label": "Not applicable (e.g., for unsupervised learning like clustering, or rule-based systems)." },
+            { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2, "effects": { "warnings": ["Data labeling status must be clarified immediately as it is critical to project planning."] } }
+        ]
+      },
+      {
         "id": "data_volume",
         "text": "What is your data volume?",
         "options": [

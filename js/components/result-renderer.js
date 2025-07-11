@@ -17,9 +17,11 @@ export class ResultRenderer {
       standardContainer: document.querySelector(DOM_SELECTORS.results.standardContainer)
     };
     this.aiPlan = new ResultAIPlan();
+    this.loadingInterval = null;
   }
 
   render(result) {
+    this._stopLoadingAnimation();
     if (!result) {
       this._renderError();
       return;
@@ -40,16 +42,79 @@ export class ResultRenderer {
     if (this.elements.standardContainer) {
         this.elements.standardContainer.innerHTML = `
             <div class="text-center p-8">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Evaluating the feasability of your AI project & generating a custom project plan</h3>
-                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Our expert rules engine & GenAI model are analyzing your responses to create a detailed feasability assessment and a strategic roadmap. This may take a moment.</p>
-                <div class="flex justify-center items-center">
-                    <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <div class="flex justify-center items-center mb-6">
+                    <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                 </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Building Your AI Strategy...</h3>
+                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Our AI is analyzing your responses to create a detailed feasibility assessment and strategic roadmap. Please wait a moment.</p>
+                <div id="loading-steps" class="mt-8 space-y-3 inline-block text-left"></div>
             </div>
         `;
+        this._startLoadingAnimation();
+    }
+  }
+
+  _startLoadingAnimation() {
+    const steps = [
+      'Analyzing business requirements...',
+      'Evaluating data characteristics...',
+      'Assessing technical feasibility...',
+      'Cross-referencing industry best practices...',
+      'Identifying technology profiles...',
+      'Generating and composing strategic roadmap...'
+    ];
+    const container = document.getElementById('loading-steps');
+    if (!container) return;
+
+    container.innerHTML = steps.map((step, index) => `
+      <div id="step-${index}" class="flex items-center text-gray-400 transition-all duration-500">
+        <svg class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" stroke-width="2" class="stroke-current text-gray-300"></circle>
+          <path class="spinner-path" d="M12,2 A10,10 0 0,1 22,12" stroke-width="2" stroke-linecap="round" style="stroke: #a5b4fc; display: none;"></path>
+          <path class="checkmark-path" d="M9 12l2 2 4-4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;"></path>
+        </svg>
+        <span>${step}</span>
+      </div>
+    `).join('');
+
+    let currentStep = 0;
+    const animateStep = () => {
+      if (currentStep >= steps.length) {
+        clearInterval(this.loadingInterval);
+        return;
+      }
+      
+      const stepElement = document.getElementById(`step-${currentStep}`);
+      if (stepElement) {
+        stepElement.classList.remove('text-gray-400');
+        stepElement.classList.add('text-indigo-600', 'font-semibold');
+        stepElement.querySelector('.spinner-path').style.display = 'block';
+      }
+
+      if (currentStep > 0) {
+        const prevStepElement = document.getElementById(`step-${currentStep - 1}`);
+        if (prevStepElement) {
+          prevStepElement.classList.remove('text-indigo-600', 'font-semibold');
+          prevStepElement.classList.add('text-green-600');
+          prevStepElement.querySelector('.spinner-path').style.display = 'none';
+          prevStepElement.querySelector('.checkmark-path').style.display = 'block';
+          prevStepElement.querySelector('circle').classList.add('text-green-500');
+        }
+      }
+      currentStep++;
+    };
+
+    animateStep(); // Start the first step immediately
+    this.loadingInterval = setInterval(animateStep, 1500);
+  }
+
+  _stopLoadingAnimation() {
+    if (this.loadingInterval) {
+      clearInterval(this.loadingInterval);
+      this.loadingInterval = null;
     }
   }
 
@@ -88,6 +153,7 @@ export class ResultRenderer {
   }
 
   _renderError() {
+    this._stopLoadingAnimation();
     if (this.elements.standardContainer) {
       this.elements.standardContainer.innerHTML = `
         <div class="bg-red-50 border border-red-200 rounded-lg p-6">

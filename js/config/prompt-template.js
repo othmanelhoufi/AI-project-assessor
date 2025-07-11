@@ -1,16 +1,29 @@
 /**
  * Prompt template for the AI-powered strategic plan generation.
+ * This file now separates the system prompt from the user-facing prompt.
  */
 import { DataService } from '../services/data-service.js';
 
 /**
- * Constructs a detailed prompt for the Gemini API.
+ * Constructs a detailed prompt for the Gemini API using advanced prompt engineering techniques.
  * @param {string} description - The user's project description.
  * @param {object} answers - The user's answers to the questionnaire.
  * @param {object} initialResult - The initial rule-based assessment result.
- * @returns {string} A comprehensive prompt string.
+ * @returns {object} An object containing the systemPrompt and userPrompt.
  */
 export const buildAIPrompt = (description, answers, initialResult) => {
+
+    const systemPrompt = `
+You are a Principal Technology Strategy Consultant at a top-tier global firm like McKinsey, Bain, or BCG. You are an expert in AI, digital transformation, and corporate strategy. Your clients are C-suite executives who expect the highest standard of analysis, strategic insight, and professionalism.
+
+Your communication style is:
+- **Authoritative and Confident:** You provide clear, direct recommendations.
+- **Structured and Logical:** You use frameworks, tables, and clear headings to present complex information.
+- **Insightful:** You don't just summarize information; you synthesize it to provide unique, actionable insights.
+- **Client-Focused:** You always tie technology recommendations back to tangible business value and outcomes.
+- **Meticulous:** You adhere strictly to the requested output format.
+`;
+
     let qaSummary = 'The user provided the following information through a questionnaire:\n';
     for (const [questionId, answerValue] of Object.entries(answers)) {
         if (questionId === 'project_description') continue;
@@ -22,7 +35,7 @@ export const buildAIPrompt = (description, answers, initialResult) => {
     }
 
     const initialResultSummary = `
-Based on the user's answers, a preliminary rule-based assessment was generated:
+A preliminary rule-based assessment was generated based on the user's answers:
 - **Feasibility:** Risk is ${initialResult.feasibility.risk}, Confidence is ${initialResult.feasibility.confidence}.
 - **Timeline:** Estimated ${initialResult.eta.min}-${initialResult.eta.max} months for a ${initialResult.scope_title}.
 - **Recommended Tech Profile:** ${JSON.stringify(initialResult.techProfile, null, 2)}
@@ -31,56 +44,80 @@ Based on the user's answers, a preliminary rule-based assessment was generated:
 - **Technologies to Avoid:**\n${initialResult.avoidTech.map(t => `  - ${t}`).join('\n')}
     `;
 
-    return `
-You are an expert AI strategy consultant. Your task is to create a comprehensive, actionable project plan for a client based on the information they provided.
-
-**Client's Project Description:**
+    const userPrompt = `
+**Client-Provided Information**
 ---
+**Project Description:**
 ${description}
 ---
-
 **Questionnaire Summary:**
----
 ${qaSummary}
 ---
-
-**Initial Rule-Based Assessment:**
----
+**Initial Automated Assessment:**
 ${initialResultSummary}
 ---
 
-**Your Task:**
+**Your Mandate**
 
-Based on ALL the information above, generate a detailed and professional project plan. The plan should be structured in Markdown format with the following sections:
+Generate a comprehensive, client-ready strategic project plan. The output must be meticulously structured in Markdown format. Adhere STRICTLY to the XML tags provided below for each section. The tone must be authoritative, insightful, and clear. Use tables where specified to present complex information in a digestible format.
 
+<master_plan>
+
+<executive_summary>
 ### 1. Executive Summary
-- A high-level overview of the project, its goals, and the recommended approach. Synthesize the user's description and the assessment's findings into a coherent summary.
+- **Project North Star:** Start with a concise, powerful statement defining the project's ultimate business goal.
+- **Core Problem:** Clearly articulate the business problem being solved.
+- **Proposed Solution:** Briefly describe the recommended AI solution and why it's the right approach.
+- **Key Outcomes:** List 3-4 measurable outcomes the client can expect (e.g., "Reduce customer churn by 15%", "Increase operational efficiency by 30%").
+- **Overall Feasibility:** Provide a final, expert judgment on the project's feasibility, synthesizing the initial assessment and your expert analysis.
+</executive_summary>
 
+<strategic_recommendations>
 ### 2. Strategic Recommendations
-- Elaborate on the initial assessment. Why is the recommended technology a good fit? What are the key strategic considerations?
-- Discuss the feasibility and risks in more detail, providing context for the warnings and suggesting mitigation strategies.
+- **Technology Rationale:** Go beyond listing technologies. Justify *why* the recommended tech stack (e.g., Classical ML vs. RAG vs. Generative AI) is the optimal choice for this specific problem, referencing the client's data and goals.
+- **Risk Analysis & Mitigation Matrix:** Present risks in a structured way.
+  - Discuss the most critical warnings from the initial assessment.
+  - For each risk, propose concrete mitigation strategies. Format this as a Markdown table with columns: 'Risk Category', 'Description', 'Impact (High/Med/Low)', and 'Mitigation Strategy'.
+- **Success Measurement (KPIs):** Define the Key Performance Indicators that will be used to measure the project's success.
+</strategic_recommendations>
 
+<phased_project_roadmap>
 ### 3. Phased Project Roadmap
-- Create a clear, phased roadmap (e.g., Phase 1: Discovery & PoC, Phase 2: MVP Development, Phase 3: Production & Scale).
-- For each phase, define:
-  - **Objectives:** What are the goals of this phase?
-  - **Key Activities:** List the main tasks (e.g., Data Collection, Model Training, API Development).
-  - **Deliverables:** What will be produced (e.g., Feasibility Report, Deployed Model API)?
-  - **Estimated Timeline:** A timeline for the phase (e.g., 2-4 weeks).
+Create a detailed, multi-phase project roadmap. Present this as a Markdown table with the following columns: 'Phase', 'Objectives', 'Key Activities', 'Deliverables', and 'Estimated Timeline'.
 
+*Example Row:*
+| Phase 1: Discovery & PoC | - Validate technical feasibility <br> - Define data requirements | - Data audit & cleaning <br> - Build baseline model | - Feasibility Report <br> - Deployed PoC API | 2-4 Weeks |
+
+- Ensure the roadmap includes distinct phases like 'Discovery & Proof of Concept', 'MVP Development', and 'Production & Scale'.
+- Be specific and action-oriented in the 'Key Activities' and 'Deliverables' sections.
+</phased_project_roadmap>
+
+<team_and_resource_plan>
 ### 4. Team & Resource Plan
-- Detail the roles identified in the initial assessment.
-- For each role, describe their key responsibilities within this specific project context.
-- Suggest an allocation percentage for each phase (e.g., ML Engineer: 50% in Phase 1, 100% in Phase 2).
+Detail the required team structure and their allocation across the project phases. Present this as a Markdown table with columns: 'Role', 'Key Responsibilities', 'Allocation (Phase 1)', 'Allocation (Phase 2)', 'Allocation (Phase 3)'.
 
+- For each role identified in the initial assessment, write a brief but specific description of their responsibilities *in the context of this project*.
+- Use allocation percentages (e.g., 50%, 100%) for each phase to provide a clear resource plan.
+</team_and_resource_plan>
+
+<budgetary_considerations>
 ### 5. Budgetary Considerations
-- Provide a high-level budget breakdown. You don't have exact figures, so use categories and relative costs.
-- Example categories: Personnel (by role), Cloud Infrastructure (compute, storage), Third-Party APIs/Data, Contingency (15-20%).
-- Provide advice on how to manage the budget effectively.
+Provide a strategic overview of the budget. Since you don't have exact figures, focus on categories, relative costs, and financial management advice.
+- **Cost Categories Breakdown:** Use a Markdown table to outline the primary cost drivers. Columns should be: 'Category', 'Description', 'Relative Cost (High/Med/Low)', and 'Key Cost Drivers'.
+  - Categories must include: Personnel, Cloud Infrastructure, Third-Party APIs/Data, and a mandatory 15-20% Contingency.
+- **Budget Management Advice:** Provide actionable advice on how to manage the budget effectively, such as prioritizing spending in early phases or strategies for optimizing cloud costs.
+</budgetary_considerations>
 
-### 6. Next Steps
-- A clear, actionable list of the immediate next steps the client should take (e.g., "Schedule a data audit with your engineering team," "Finalize KPIs for success measurement").
+<next_steps>
+### 6. Immediate Next Steps
+Provide a clear, numbered list of the top 3-5 immediate, actionable steps the client must take to get this project started.
+1.  [Actionable Step 1]
+2.  [Actionable Step 2]
+3.  [Actionable Step 3]
+</next_steps>
 
-**Tone:** Professional, authoritative, and helpful. Your goal is to provide a document that a consultant could confidently present to a client. Use clear headings, bullet points, and bold text to improve readability.
+</master_plan>
     `;
+
+    return { systemPrompt, userPrompt };
 };

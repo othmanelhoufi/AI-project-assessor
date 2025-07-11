@@ -14,10 +14,38 @@ export class ResultAIPlan {
       return `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert"><p>The AI plan was skipped because a project description was not provided. Please start over and fill in the description to use this feature.</p></div>`;
     }
 
-    this.aiPlanSlides = result.aiGeneratedPlan.split(/(?=###\s)/g).filter(s => s.trim() !== '');
+    const planContent = result.aiGeneratedPlan;
+    const sectionTags = [
+        'executive_summary', 
+        'strategic_recommendations', 
+        'phased_project_roadmap', 
+        'team_and_resource_plan', 
+        'budgetary_considerations', 
+        'next_steps'
+    ];
+    const sectionRegex = new RegExp(`<(${sectionTags.join('|')})>([\\s\\S]*?)<\\/\\1>`, 'g');
+    
+    this.aiPlanSlides = [];
+    let match;
+    while ((match = sectionRegex.exec(planContent)) !== null) {
+        // match[2] contains the content inside the specific section tags.
+        // The .trim() function is added here to remove any leading/trailing whitespace and newlines.
+        const sectionContent = match[2].trim(); 
+        if (sectionContent) {
+            this.aiPlanSlides.push(sectionContent);
+        }
+    }
+
+    // Fallback to the old H3-based splitting if the new parsing finds no sections.
+    if (this.aiPlanSlides.length === 0) {
+      console.warn("AI Plan: Could not parse specific XML sections. Falling back to H3-based splitting.");
+      this.aiPlanSlides = result.aiGeneratedPlan.split(/(?=###\s)/g).filter(s => s.trim() !== '');
+    }
+
     this.currentAiPlanSlide = 0;
 
     if (this.aiPlanSlides.length === 0) {
+      // If still no slides, render the whole block.
       return `<div class="prose prose-blue max-w-none bg-gray-50 p-6 rounded-md border">${marked.parse(result.aiGeneratedPlan)}</div>`;
     }
 
@@ -97,7 +125,7 @@ export class ResultAIPlan {
     if (nextBtn) {
       nextBtn.disabled = this.currentAiPlanSlide >= this.aiPlanSlides.length - 1;
     }
-    if (counter) {
+    if (counter && this.aiPlanSlides.length > 0) {
       counter.textContent = `Section ${this.currentAiPlanSlide + 1} of ${this.aiPlanSlides.length}`;
     }
   }
