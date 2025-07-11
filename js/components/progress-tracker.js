@@ -14,35 +14,30 @@ export class ProgressTracker {
   }
 
   init() {
-    // Subscribe to state changes
-    stateManager.subscribe('currentCategoryIndex', () => this.updateProgress());
-    stateManager.subscribe('assessmentData', () => this.updateProgress()); // Subscribe to data loading
+    stateManager.subscribe('assessmentData', () => this.updateProgress());
   }
 
-  // REVISED METHOD: Update progress based on categories
   updateProgress() {
-    const { currentCategoryIndex, assessmentData } = stateManager.getState();
-    const categories = assessmentData.categories || [];
-    const totalCategories = categories.length;
+    const { currentAnswers, allQuestions, assessmentData, currentCategoryIndex } = stateManager.getState();
+    
+    if (!allQuestions || allQuestions.length === 0) return;
 
-    if (!totalCategories) return;
-
-    const progressPercent = Math.round((currentCategoryIndex / totalCategories) * 100);
-    const currentStep = currentCategoryIndex + 1;
-
-    // Update progress bar
+    const answeredQuestions = Object.keys(currentAnswers).length;
+    const totalQuestions = allQuestions.length;
+    const progressPercent = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
+    
+    const categoryName = assessmentData.categories?.[currentCategoryIndex]?.name || '';
+    
     if (this.elements.bar) {
       this.elements.bar.style.width = `${progressPercent}%`;
     }
 
-    // Update text
     if (this.elements.text) {
-      this.elements.text.textContent = `Section ${currentStep} of ${totalCategories}: ${categories[currentCategoryIndex]?.name || ''}`;
+      this.elements.text.textContent = `Current Section: ${categoryName}`;
     }
 
-    // Update percentage
     if (this.elements.percentage) {
-      this.elements.percentage.textContent = `${progressPercent}%`;
+      this.elements.percentage.textContent = `${progressPercent}% Complete`;
     }
   }
 

@@ -26,7 +26,7 @@ export class QuestionRenderer {
 
   static _renderTextarea(question, answer, borderColor, bgColor) {
     const currentLength = answer?.length || 0;
-    const minLength = 20;
+    const minLength = 300;
     const lengthColor = currentLength >= minLength ? 'text-green-600' : 'text-red-600';
 
     return `

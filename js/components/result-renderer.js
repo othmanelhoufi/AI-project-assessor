@@ -40,8 +40,8 @@ export class ResultRenderer {
     if (this.elements.standardContainer) {
         this.elements.standardContainer.innerHTML = `
             <div class="text-center p-8">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Generating Your Custom Project Plan...</h3>
-                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Our AI is analyzing your responses to create a detailed strategic roadmap. This may take a moment.</p>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Evaluating the feasability of your AI project & generating a custom project plan</h3>
+                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Our expert rules engine & GenAI model are analyzing your responses to create a detailed feasability assessment and a strategic roadmap. This may take a moment.</p>
                 <div class="flex justify-center items-center">
                     <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -106,37 +106,32 @@ export class ResultRenderer {
     const teamHtml = ResultTeam.render(result);
     const aiPlanHtml = this.aiPlan.render(result);
 
-    const hasSideContent = (result.warnings && result.warnings.length > 0) || (result.avoidTech && result.avoidTech.length > 0);
-
-    let mainContentHtml;
-
-    if (hasSideContent) {
-      mainContentHtml = `
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div class="lg:col-span-2 space-y-8">
-            ${feasibilityHtml}
-            ${techProfileHtml}
-          </div>
-          <div class="lg:col-span-1 space-y-8">
-            ${warningsHtml}
-          </div>
-        </div>
-      `;
-    } else {
-      mainContentHtml = `
-        <div class="space-y-8">
-          ${feasibilityHtml}
-          ${techProfileHtml}
-        </div>
-      `;
-    }
-
     return `
         <div class="space-y-8">
             ${headerCardHtml}
-            ${mainContentHtml}
-            ${teamHtml}
-            ${aiPlanHtml}
+            <div class="grid grid-cols-1 wide:grid-cols-10 gap-8">
+                
+                <div class="col-span-1 wide:col-span-10">
+                    ${warningsHtml}
+                </div>
+
+                <div class="col-span-1 wide:col-span-3 space-y-8">
+                    ${feasibilityHtml}
+                </div>
+
+                <div class="col-span-1 wide:col-span-7 space-y-8">
+                    ${techProfileHtml}
+                </div>
+
+                <div class="col-span-1 wide:col-span-10">
+                    ${teamHtml}
+                </div>
+
+                <div class="col-span-1 wide:col-span-10">
+                    ${aiPlanHtml}
+                </div>
+
+            </div>
         </div>
     `;
   }

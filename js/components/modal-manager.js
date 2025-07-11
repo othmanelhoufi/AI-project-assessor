@@ -3,7 +3,9 @@
  */
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
-import { ReviewRenderer } from './review-renderer.js'; // Import the new renderer
+import { ReviewRenderer } from './review-renderer.js';
+import { ResultAIPlan } from './result/ai-plan.js';
+
 
 export class ModalManager {
   static showAlert(message, title = CONSTANTS.MODAL_DEFAULTS.ALERT.title, icon = CONSTANTS.MODAL_DEFAULTS.ALERT.icon) {
@@ -99,9 +101,6 @@ export class ModalManager {
     });
   }
   
-  /**
-   * CORRECTED: This function now delegates content generation to ReviewRenderer.
-   */
   static showReviewModal(assessment) {
     const elements = this._getModalElements('review');
     if (!elements.modal) return;
@@ -110,9 +109,14 @@ export class ModalManager {
     elements.content.innerHTML = '<div class="text-center text-gray-500">Loading details...</div>';
     elements.modal.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
 
-    // Get the HTML content from the dedicated renderer.
     const contentHtml = ReviewRenderer.render(assessment);
     elements.content.innerHTML = contentHtml;
+
+    if (assessment.result && assessment.result.aiPlanStatus === 'success') {
+      const aiPlan = new ResultAIPlan();
+      aiPlan.aiPlanSlides = assessment.result.aiGeneratedPlan.split(/(?=###\s)/g).filter(s => s.trim() !== '');
+      aiPlan.attachSlideshowEvents();
+    }
 
     const handleClose = () => {
       elements.modal.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);

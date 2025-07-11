@@ -13,11 +13,21 @@ export class ReviewRenderer {
   static render(assessment) {
     const { answers, result } = assessment;
 
-    // Generate the HTML for the questions and answers section.
-    let questionsHtml = '<div class="space-y-4">';
+    let questionsHtml = '';
+    const projectDescription = answers?.project_description;
+
+    if (projectDescription) {
+      questionsHtml += `
+        <div class="border-l-4 border-blue-400 bg-blue-50 p-4 rounded-r-md avoid-break mb-6">
+          <h4 class="font-medium text-gray-800">Project Description</h4>
+          <p class="text-sm text-gray-700 mt-2">${projectDescription}</p>
+        </div>
+      `;
+    }
+
+    questionsHtml += '<div class="space-y-4">';
     if (answers && Object.keys(answers).length > 0) {
       for (const [questionId, answerValue] of Object.entries(answers)) {
-        // Skip the project description textarea in this section.
         if (questionId === 'project_description') continue;
         
         const question = DataService.getQuestionById(questionId);
@@ -40,10 +50,8 @@ export class ReviewRenderer {
     }
     questionsHtml += '</div>';
 
-    // Generate the HTML for the assessment result section.
     let resultHtml = '';
     if (result) {
-      // Use the existing ResultRenderer to generate the result part of the review.
       const tempRenderer = new ResultRenderer();
       const tempContainer = document.createElement('div');
       tempRenderer.elements.standardContainer = tempContainer;
@@ -54,23 +62,28 @@ export class ReviewRenderer {
       resultHtml = '<p class="text-gray-500">No result was generated for this assessment.</p>';
     }
 
-    // Combine all parts into a final wrapper element for PDF export.
     return `
       <div id="pdf-content-wrapper" class="p-4">
-        <div class="avoid-break mb-8">
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">AI Project Assessment Report</h1>
-          <p class="text-sm text-gray-600">For: ${assessment.name || 'Untitled Assessment'}</p>
-          <p class="text-xs text-gray-400">Date: ${new Date(assessment.date).toLocaleDateString()}</p>
+        <div class="avoid-break mb-8 text-center">
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">AI Project Assessment Report</h1>
+          <p class="text-lg text-gray-600">For: ${assessment.name || 'Untitled Assessment'}</p>
+          <p class="text-sm text-gray-400">Date: ${new Date(assessment.date).toLocaleDateString()}</p>
         </div>
         
-        <div class="space-y-10">
-          <div class="avoid-break">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
-            ${questionsHtml}
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-4">
+            <div class="sticky top-8">
+              <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
+              <div class="max-h-[60vh] overflow-y-auto pr-4">
+                ${questionsHtml}
+              </div>
+            </div>
           </div>
-          <div class="avoid-break">
+          <div class="lg:col-span-8">
             <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Assessment Result</h3>
-            ${resultHtml}
+            <div class="max-h-[60vh] overflow-y-auto pr-4">
+                ${resultHtml}
+            </div>
           </div>
         </div>
       </div>

@@ -101,7 +101,7 @@ export class StateManager {
     return currentCategory.questions.every(question => {
       const answer = this.state.currentAnswers[question.id];
       if (question.type === 'textarea') {
-        return answer && answer.trim().length >= 20;
+        return answer && answer.trim().length >= 300;
       }
       return answer !== undefined && answer !== null && answer !== '';
     });

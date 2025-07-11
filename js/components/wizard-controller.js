@@ -47,6 +47,7 @@ export class WizardController {
   _setupStateSubscriptions() {
     stateManager.subscribe('currentCategoryIndex', () => this._updateNavigation());
     stateManager.subscribe('currentAnswers', () => {
+        this.progressTracker.updateProgress();
         this._updateCategoryStyles();
         this._updateNavigation();
     });
@@ -150,12 +151,19 @@ export class WizardController {
   async _completeAssessment() {
     this.progressTracker.hide();
     this._showWizardStep('result');
+    
+    this.elements.startOverResultBtn?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
+    this.elements.saveBtn?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
+
     this.resultRenderer.renderLoading();
 
     const result = await AssessmentService.generateResult();
     stateManager.setState('currentResult', result);
     
     this.resultRenderer.render(result);
+    
+    this.elements.startOverResultBtn?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
+    this.elements.saveBtn?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
   }
 
   _showWizardStep(step) {
@@ -215,7 +223,7 @@ export class WizardController {
           const charCountEl = document.getElementById(`char-count-${question.id}`);
           if(charCountEl) {
               const currentLength = answer?.length || 0;
-              const minLength = 20;
+              const minLength = 300;
               const lengthColor = currentLength >= minLength ? 'text-green-600' : 'text-red-600';
               charCountEl.className = `text-right text-sm mt-2 ${lengthColor}`;
               charCountEl.textContent = `${currentLength} / ${minLength} characters minimum`;
