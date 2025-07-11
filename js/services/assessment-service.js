@@ -1,16 +1,18 @@
 /**
  * Assessment logic and result generation service.
- * This service now works with the refactored, modular data structure.
+ * This service now works with the refactored, modular data structure and integrates with Generative AI.
  */
 import { stateManager } from '../managers/state-manager.js';
 import { DataService } from './data-service.js';
+import { ENV } from '../config/env.js'; // Import environment variables
+import { buildAIPrompt } from '../config/prompt-template.js'; // Import the new prompt builder
 
 export class AssessmentService {
   /**
-   * Generates the final assessment result based on user answers.
-   * @returns {object|null} The assessment result object or null on error.
+   * Generates the final assessment result, now including an AI-powered strategic plan.
+   * @returns {Promise<object|null>} The assessment result object or null on error.
    */
-  static generateResult() {
+  static async generateResult() {
     const { currentAnswers, assessmentData } = stateManager.getState();
     
     if (!assessmentData || !currentAnswers) {
@@ -18,7 +20,6 @@ export class AssessmentService {
       return null;
     }
     
-    // First, check if there's too much uncertainty to provide a reliable result.
     const uncertaintyCheck = this._checkUncertainty(currentAnswers);
     if (uncertaintyCheck.hasUncertainty) {
       return {
@@ -28,15 +29,64 @@ export class AssessmentService {
       };
     }
     
-    // If uncertainty is low, proceed with generating the standard result.
-    return this._generateStandardResult(currentAnswers, assessmentData);
+    const initialResult = this._generateStandardResult(currentAnswers, assessmentData);
+    
+    const projectDescription = currentAnswers.project_description;
+    if (projectDescription && projectDescription.trim().length >= 20) {
+        try {
+            const aiPlan = await this.generateAIPlan(projectDescription, currentAnswers, initialResult);
+            initialResult.aiGeneratedPlan = aiPlan;
+            initialResult.aiPlanStatus = 'success';
+        } catch (error) {
+            console.error("AI Plan Generation Failed:", error);
+            initialResult.aiGeneratedPlan = "Failed to generate the AI-powered project plan. This may be due to a network issue or an API error. You can still use the standard assessment below.";
+            initialResult.aiPlanStatus = 'error';
+        }
+    } else {
+        initialResult.aiPlanStatus = 'skipped';
+    }
+
+    return initialResult;
   }
 
   /**
-   * Checks for uncertainty based on user's answers.
-   * @param {object} answers - The user's current answers.
-   * @returns {object} An object indicating if there is high uncertainty.
+   * Generates a strategic plan by calling the Gemini API.
+   * @param {string} description - The user's project description.
+   * @param {object} answers - The user's answers to the questionnaire.
+   * @param {object} initialResult - The initial rule-based assessment result.
+   * @returns {Promise<string>} The AI-generated plan as a string.
    */
+  static async generateAIPlan(description, answers, initialResult) {
+    // The prompt is now built by the imported function
+    const prompt = buildAIPrompt(description, answers, initialResult);
+
+    const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+    const payload = { contents: chatHistory };
+    const apiKey = ENV.GEMINI_API_KEY; 
+    const modelName = ENV.GEMINI_MODEL_NAME;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
+    }
+
+    const result = await response.json();
+    
+    if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+        return result.candidates[0].content.parts[0].text;
+    } else {
+        console.error("Invalid response structure from AI API:", result);
+        throw new Error("Received an invalid or empty response from the AI service.");
+    }
+  }
+
   static _checkUncertainty(answers) {
     const uncertainAreas = [];
     let totalUncertaintyWeight = 0;
@@ -52,38 +102,29 @@ export class AssessmentService {
       }
     }
     
-    const hasUncertainty = totalUncertaintyWeight > 2; // Threshold for showing the warning
+    const hasUncertainty = totalUncertaintyWeight > 2;
     
     return {
       hasUncertainty,
       areas: uncertainAreas,
       message: hasUncertainty 
-        ? "The assessment cannot be reliably generated because critical information is missing or uncertain. To create an accurate technology and resource plan, please gather more details on the following topics before re-running the assessment:"
+        ? "The assessment could not be fully generated due to missing or uncertain information in key areas."
         : null
     };
   }
 
-  /**
-   * Generates the standard, detailed assessment result.
-   * @param {object} answers - The user's current answers.
-   * @param {object} assessmentData - The complete set of assessment data (categories, rules, etc.).
-   * @returns {object} The detailed result object.
-   */
   static _generateStandardResult(answers, assessmentData) {
-    // Initialize the result object with default values.
-    // UPDATED: Lowered the base timeline estimate for more realistic projections.
     const result = {
       summary: "Based on your responses, here's our assessment:",
       techProfile: {},
       roles: {},
-      eta: { min: 2, max: 4 }, // Base timeline estimate is now 2-4 months.
+      eta: { min: 2, max: 4 },
       feasibility: { risk: "Medium", confidence: "Medium" },
       warnings: [],
       avoidTech: [],
       scope_title: "Project"
     };
     
-    // 1. Apply effects from the options selected by the user.
     for (const [questionId, answer] of Object.entries(answers)) {
       const selectedOption = DataService.getOptionByValue(questionId, answer);
       if (selectedOption?.effects) {
@@ -91,20 +132,12 @@ export class AssessmentService {
       }
     }
     
-    // 2. Apply effects from conditional rules that match the user's answers.
     this._applyRules(result, answers, assessmentData);
     
     return result;
   }
 
-  /**
-   * Applies effects from an option or rule to the result object.
-   * @param {object} result - The result object to modify.
-   * @param {object} effects - The effects to apply.
-   * @param {object} assessmentData - The complete assessment data for lookups.
-   */
   static _applyEffects(result, effects, assessmentData) {
-    // REFACTORED: Look up technology profiles by ID.
     if (effects.techProfileId) {
       const techProfile = assessmentData.technologies[effects.techProfileId];
       if (techProfile) {
@@ -112,7 +145,6 @@ export class AssessmentService {
       }
     }
     
-    // REFACTORED: Look up roles by ID and add them to the result.
     if (effects.roleIds) {
       effects.roleIds.forEach(roleId => {
         if (assessmentData.roles[roleId]) {
@@ -121,7 +153,6 @@ export class AssessmentService {
       });
     }
     
-    // Adjust ETA (timeline).
     if (effects.eta) {
       if (effects.eta.addMin) result.eta.min += effects.eta.addMin;
       if (effects.eta.addMax) result.eta.max += effects.eta.addMax;
@@ -131,17 +162,14 @@ export class AssessmentService {
       result.eta.max = Math.ceil(result.eta.max * effects.eta_multiplier);
     }
     
-    // Update feasibility.
     if (effects.feasibility) {
       Object.assign(result.feasibility, effects.feasibility);
     }
     
-    // Update scope title.
     if (effects.scope_title) {
       result.scope_title = effects.scope_title;
     }
     
-    // Collect warnings and technologies to avoid.
     if (effects.warnings) {
       result.warnings.push(...(Array.isArray(effects.warnings) ? effects.warnings : [effects.warnings]));
     }
@@ -150,12 +178,6 @@ export class AssessmentService {
     }
   }
 
-  /**
-   * Checks all conditional rules and applies their effects if conditions are met.
-   * @param {object} result - The result object to modify.
-   * @param {object} answers - The user's current answers.
-   * @param {object} assessmentData - The complete assessment data.
-   */
   static _applyRules(result, answers, assessmentData) {
     if (!assessmentData.rules) return;
     
@@ -166,21 +188,13 @@ export class AssessmentService {
     }
   }
 
-  /**
-   * Checks if a user's answers satisfy the conditions of a single rule.
-   * @param {object} conditions - The conditions of the rule.
-   * @param {object} answers - The user's answers.
-   * @returns {boolean} True if all conditions are met, false otherwise.
-   */
   static _checkRuleConditions(conditions, answers) {
     for (const [questionId, expectedValues] of Object.entries(conditions)) {
       const userAnswer = answers[questionId];
-      // If the user hasn't answered a required question, or their answer is not in the expected list, the condition fails.
       if (!userAnswer || !expectedValues.includes(userAnswer)) {
         return false;
       }
     }
-    // If all conditions were met, return true.
     return true;
   }
 }

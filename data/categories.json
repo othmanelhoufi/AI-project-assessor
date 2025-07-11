@@ -219,5 +219,17 @@
         ]
       }
     ]
+  },
+  {
+    "name": "Section 6: Project Context",
+    "description": "Provide a detailed description of your project to generate a customized strategic plan.",
+    "questions": [
+      {
+        "id": "project_description",
+        "text": "Describe your project in detail. What is the main goal? What is the business context? Who are the users? The more detail you provide, the better the AI-generated plan will be.",
+        "type": "textarea",
+        "placeholder": "For example: We are a retail company wanting to build a system to predict customer churn. The goal is to identify at-risk customers and target them with retention campaigns. The users will be the marketing team..."
+      }
+    ]
   }
 ]

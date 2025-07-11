@@ -94,7 +94,7 @@ export class StateManager {
     return assessmentData.categories?.[currentCategoryIndex] || null;
   }
   
-  // REVISED METHOD: canGoNext now checks all questions in the category
+  // REVISED METHOD: canGoNext now checks all questions in the category, including the new textarea type
   canGoNext() {
     const currentCategory = this.getCurrentCategory();
     if (!currentCategory || !currentCategory.questions) {
@@ -104,6 +104,10 @@ export class StateManager {
     // Check if every question in the current category has an answer
     return currentCategory.questions.every(question => {
       const answer = this.state.currentAnswers[question.id];
+      if (question.type === 'textarea') {
+        // For textarea, require a minimum length.
+        return answer && answer.trim().length >= 20;
+      }
       return answer !== undefined && answer !== null && answer !== '';
     });
   }
@@ -113,7 +117,9 @@ export class StateManager {
   }
 
   isComplete() {
-    return this.state.currentCategoryIndex >= this.state.allQuestions.length;
+    const { assessmentData, currentCategoryIndex } = this.state;
+    const totalCategories = assessmentData.categories?.length || 0;
+    return currentCategoryIndex >= totalCategories;
   }
 }
 

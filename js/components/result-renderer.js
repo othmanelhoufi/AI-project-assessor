@@ -13,7 +13,7 @@ export class ResultRenderer {
   }
 
   init() {
-    // Initialize if needed
+    // No initialization needed
   }
 
   render(result) {
@@ -25,7 +25,27 @@ export class ResultRenderer {
     if (result.insufficientInfo) {
       this._renderInsufficientInfo(result);
     } else {
-      this._renderStandardResult(result);
+      this.elements.standardContainer.innerHTML = this._generateStandardResultHTML(result);
+    }
+  }
+
+  renderLoading() {
+    this.elements.standardContainer?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
+    this.elements.insufficientWarning?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
+    
+    if (this.elements.standardContainer) {
+        this.elements.standardContainer.innerHTML = `
+            <div class="text-center p-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Generating Your Custom Project Plan...</h3>
+                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Our AI is analyzing your responses to create a detailed strategic roadmap. This may take a moment.</p>
+                <div class="flex justify-center items-center">
+                    <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+            </div>
+        `;
     }
   }
 
@@ -34,9 +54,6 @@ export class ResultRenderer {
     this.elements.insufficientWarning?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
     
     if (this.elements.insufficientWarning) {
-      // Ensure the overall container for this message allows it to take appropriate width
-      // This might be styled by parent CSS for DOM_SELECTORS.results.insufficientWarning
-      // We add py-2 for consistency with the standard results main container.
       this.elements.insufficientWarning.innerHTML = `
       <div class="py-2">
         <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-xl rounded-r-lg p-6 max-w-3xl mx-auto">
@@ -66,15 +83,6 @@ export class ResultRenderer {
     }
   }
 
-  _renderStandardResult(result) {
-    this.elements.insufficientWarning?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
-    this.elements.standardContainer?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
-    
-    if (this.elements.standardContainer) {
-      this.elements.standardContainer.innerHTML = this._generateStandardResultHTML(result);
-    }
-  }
-
   _renderError() {
     if (this.elements.standardContainer) {
       this.elements.standardContainer.innerHTML = `
@@ -86,10 +94,100 @@ export class ResultRenderer {
     }
   }
 
+  /**
+   * REVISED: A more robust markdown parser to handle paragraphs, lists, and headings.
+   */
+  _simpleMarkdownToHtml(markdown) {
+    if (!markdown) return '';
+
+    const blocks = markdown.trim().split(/\n\n+/);
+
+    return blocks.map(block => {
+        // Process headings first
+        if (block.startsWith('### ')) return `<h3>${block.substring(4)}</h3>`;
+        if (block.startsWith('## ')) return `<h2>${block.substring(3)}</h2>`;
+        if (block.startsWith('# ')) return `<h1>${block.substring(2)}</h1>`;
+
+        // Process lists
+        if (block.startsWith('* ') || block.startsWith('- ')) {
+            const items = block.split('\n').map(item => {
+                const content = item.replace(/^[\*\-]\s*/, '');
+                // Process inline markdown within list items
+                return `<li>${content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')}</li>`;
+            }).join('');
+            return `<ul>${items}</ul>`;
+        }
+        
+        // Process paragraphs with inline markdown
+        let p = block.replace(/\n/g, '<br />'); // Handle single newlines within a paragraph block
+        p = p.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        p = p.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+        return `<p>${p}</p>`;
+    }).join('');
+  }
+
+  _generateStandardResultHTML(result) {
+    const headerCardHtml = this._generateDynamicHeaderCard(result);
+    const aiPlanHtml = this._generateAIPlanHTML(result);
+    const warningsHtml = this._generateWarningsHTML(result);
+    const avoidTechHtml = this._generateAvoidTechHTML(result);
+    const feasibilityHtml = this._generateFeasibilityHTML(result);
+    const techProfileHtml = this._generateTechProfileHTML(result);
+    const teamHtml = this._generateTeamHTML(result);
+
+    const finalHtml = `
+        <div class="space-y-8">
+            ${headerCardHtml}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div class="lg:col-span-2 space-y-8">
+                    ${techProfileHtml}
+                    ${teamHtml}
+                </div>
+                <div class="lg:col-span-1 space-y-8">
+                    ${feasibilityHtml}
+                    ${warningsHtml}
+                    ${avoidTechHtml}
+                </div>
+            </div>
+            ${aiPlanHtml}
+        </div>
+    `;
+    
+    return finalHtml;
+  }
+
+  _generateAIPlanHTML(result) {
+    if (!result.aiPlanStatus) return '';
+
+    let html = `
+        <div class="bg-white shadow-xl rounded-lg p-6 border border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
+            <span class="mr-3 text-2xl">🤖</span> AI-Generated Strategic Plan
+          </h3>
+          <p class="text-sm text-gray-500 mb-4">The following plan was generated by an AI assistant based on your input. Review it as a starting point for your project strategy.</p>
+          <div class="prose prose-blue max-w-none bg-gray-50 p-6 rounded-md border">
+    `;
+
+    switch (result.aiPlanStatus) {
+      case 'success':
+        html += this._simpleMarkdownToHtml(result.aiGeneratedPlan);
+        break;
+      case 'error':
+        html += `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert"><strong>Error:</strong><p>${result.aiGeneratedPlan}</p></div>`;
+        break;
+      case 'skipped':
+        html += `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert"><p>The AI plan was skipped because a project description was not provided. Please start over and fill in the description to use this feature.</p></div>`;
+        break;
+    }
+    html += `</div></div>`;
+    return html;
+  }
+
   _generateDynamicHeaderCard(result) {
     let cardText = '';
-    let cardStyle = 'bg-gray-50 border border-gray-300 text-gray-700'; // Default/fallback
-    let icon = '⚙️'; // Default icon
+    let cardStyle = 'bg-gray-50 border border-gray-300 text-gray-700';
+    let icon = '⚙️';
 
     const scopeTitle = result.scope_title || 'Project';
     const confidence = result.feasibility?.confidence?.toLowerCase();
@@ -107,12 +205,11 @@ export class ResultRenderer {
       cardStyle = 'bg-red-50 border border-red-300 text-red-700';
       icon = '⚠️';
     } else {
-      // Fallback for undefined or unexpected confidence levels
       cardText = `Assessment summary for this ${scopeTitle} project. Review the details below.`;
     }
 
     return `
-      <div class="${cardStyle} shadow-lg rounded-xl p-6 md:p-8 mb-6">
+      <div class="${cardStyle} shadow-lg rounded-xl p-6 md:p-8">
         <div class="flex items-start">
           <span class="text-3xl mr-4">${icon}</span>
           <div>
@@ -123,71 +220,62 @@ export class ResultRenderer {
       </div>`;
   }
 
-  _generateStandardResultHTML(result) {
-    let html = ``;
-
-    // 1. Dynamic Header Card
-    html += this._generateDynamicHeaderCard(result);
-
-    // Buffer for sections to reorder
-    let warningsHtml = '';
-    let avoidTechHtml = '';
-    let feasibilityHtml = '';
-    let techProfileHtml = '';
-    let teamHtml = '';
-
-    // Generate Warnings HTML
-    if (result.warnings && result.warnings.length > 0) {
-      warningsHtml = `
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-xl rounded-r-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-yellow-800 mb-1 flex items-center">
+  /**
+   * REVISED: Uses a consistent card design for warnings.
+   */
+  _generateWarningsHTML(result) {
+    if (!result.warnings || result.warnings.length === 0) return '';
+    return `
+        <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-yellow-400">
+          <h3 class="text-xl font-semibold text-yellow-800 mb-4 flex items-center">
             <svg class="h-6 w-6 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd"/></svg>
             Important Warnings
           </h3>
-          <p class="text-sm text-yellow-600 mb-4 ml-8">Pay close attention to these potential issues.</p>
-          <ul class="space-y-2 ml-8">
+          <ul class="space-y-3">
             ${result.warnings.map(warning => `
-              <li class="flex items-start text-yellow-700">
-                <svg class="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd" /></svg>
+              <li class="flex items-start text-yellow-700 text-sm">
+                <svg class="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
                 <span>${warning}</span>
               </li>`).join('')}
           </ul>
         </div>
       `;
-    }
+  }
 
-    // Generate Technologies to Avoid HTML
-    if (result.avoidTech && result.avoidTech.length > 0) {
-      avoidTechHtml = `
-        <div class="bg-red-50 border-l-4 border-red-400 shadow-xl rounded-r-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-red-800 mb-1 flex items-center">
+  /**
+   * REVISED: Uses a consistent card design for technologies to avoid.
+   */
+  _generateAvoidTechHTML(result) {
+    if (!result.avoidTech || result.avoidTech.length === 0) return '';
+    return `
+        <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-red-400">
+          <h3 class="text-xl font-semibold text-red-800 mb-4 flex items-center">
             <svg class="h-6 w-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
             Technologies to Avoid
           </h3>
-          <p class="text-sm text-red-600 mb-4 ml-8">Consider alternatives for these technologies or approaches.</p>
-          <ul class="space-y-2 ml-8">
+          <ul class="space-y-3">
             ${result.avoidTech.map(tech => `
-              <li class="flex items-start text-red-700">
+              <li class="flex items-start text-red-700 text-sm">
                 <svg class="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
                 <span>${tech}</span>
               </li>`).join('')}
           </ul>
         </div>
       `;
-    }
+  }
 
-    // Generate Combined ETA and Feasibility Card HTML
-    if (result.eta || result.feasibility) {
-      feasibilityHtml = `
-        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
+  _generateFeasibilityHTML(result) {
+    if (!result.eta && !result.feasibility) return '';
+    let html = `
+        <div class="bg-white shadow-xl rounded-lg p-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">📊</span> Project Estimates & Feasibility
           </h3>
           <p class="text-sm text-gray-500 mb-6">Key projections for project timeline and viability.</p>
           <div class="space-y-6">`;
 
-      if (result.feasibility) {
-        feasibilityHtml += `
+    if (result.feasibility) {
+      html += `
             <div class="bg-indigo-50/60 border border-indigo-200 rounded-lg p-5 shadow-md hover:shadow-lg transition-shadow duration-200">
               <h4 class="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
                 <span class="mr-2">🎯</span> Feasibility Assessment
@@ -204,10 +292,10 @@ export class ResultRenderer {
                 ${result.feasibility.summary ? `<p class="mt-3 text-xs text-gray-600 pt-3 border-t border-indigo-200/50">${result.feasibility.summary}</p>` : ''}
               </div>
             </div>`;
-      }
+    }
 
-      if (result.eta) {
-        feasibilityHtml += `
+    if (result.eta) {
+      html += `
             <div class="bg-gray-50/70 border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
               <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
                 <span class="mr-2">⏱️</span> Timeline Estimate
@@ -218,17 +306,18 @@ export class ResultRenderer {
                 <p class="text-xs text-gray-500 mt-1">${result.scope_title || 'Project'} Duration</p>
               </div>
             </div>`;
-      }
-      feasibilityHtml += `
+    }
+    html += `
           </div>
         </div>
       `;
-    }
+    return html;
+  }
 
-    // Generate Technology Profile HTML
-    if (result.techProfile && Object.keys(result.techProfile).length > 0) {
-      techProfileHtml = `
-        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
+  _generateTechProfileHTML(result) {
+    if (!result.techProfile || Object.keys(result.techProfile).length === 0) return '';
+    return `
+        <div class="bg-white shadow-xl rounded-lg p-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">🔧</span> Technology Profile
           </h3>
@@ -245,7 +334,7 @@ export class ResultRenderer {
                 ${Object.entries(result.techProfile).map(([key, value], index) => `
                   <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}">
                     <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${this._formatAspectName(key)}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${value}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${value}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -253,17 +342,17 @@ export class ResultRenderer {
           </div>
         </div>
       `;
-    }
+  }
 
-    // Generate Team Composition HTML
-    if (result.roles && Object.keys(result.roles).length > 0) {
-      teamHtml = `
-        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
+  _generateTeamHTML(result) {
+    if (!result.roles || Object.keys(result.roles).length === 0) return '';
+    return `
+        <div class="bg-white shadow-xl rounded-lg p-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">👥</span> Required Team
           </h3>
           <p class="text-sm text-gray-500 mb-4">Key roles and expertise needed for successful execution.</p>
-          <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${Object.entries(result.roles).map(([roleKey, role]) => `
               <div class="bg-indigo-50/50 border border-indigo-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <h4 class="font-semibold text-indigo-800 text-md">${role.title || this._formatAspectName(roleKey)}</h4>
@@ -279,16 +368,6 @@ export class ResultRenderer {
           </div>
         </div>
       `;
-    }
-
-    // Assemble in new order
-    html += warningsHtml;
-    html += avoidTechHtml;
-    html += feasibilityHtml; // Contains Project Estimates & Feasibility
-    html += techProfileHtml;
-    html += teamHtml;
-
-    return html;
   }
 
   _formatAspectName(key) {
@@ -300,42 +379,32 @@ export class ResultRenderer {
   _getRiskBadgeClasses(risk) {
     switch (risk?.toLowerCase()) {
       case 'low':
-        return 'bg-green-100 text-green-800 border border-green-300'; // Light Green
+        return 'bg-green-100 text-green-800 border border-green-300';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-300'; // Yellow/Orange
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-300';
       case 'high':
-        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
+        return 'bg-red-100 text-red-700 border border-red-300';
       case 'very high':
-        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
+        return 'bg-red-100 text-red-700 border border-red-300';
       default:
-        return 'bg-gray-100 text-gray-700 border border-gray-300';    // Default
+        return 'bg-gray-100 text-gray-700 border border-gray-300';
     }
   }
 
   _getConfidenceBadgeClasses(confidenceLevel) {
     switch (confidenceLevel?.toLowerCase()) {
       case 'very high':
-        return 'bg-green-100 text-green-800 border border-green-300'; // Light Green
+        return 'bg-green-100 text-green-800 border border-green-300';
       case 'high':
-        return 'bg-green-100 text-green-800 border border-green-300'; // Light Green
+        return 'bg-green-100 text-green-800 border border-green-300';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-300'; // Yellow/Orange
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-300';
       case 'low':
-        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
+        return 'bg-red-100 text-red-700 border border-red-300';
       case 'very low':
-        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
+        return 'bg-red-100 text-red-700 border border-red-300';
       default:
-        return 'bg-gray-100 text-gray-700 border border-gray-300';    // Default
-    }
-  }
-
-  _getRiskColor(risk) { // Old method, can be removed if not used elsewhere, but safer to keep for now if other parts depend on it.
-    switch (risk?.toLowerCase()) {
-      case 'low': return 'bg-green-100 text-green-800'; // Kept original values in case this is still used
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'very high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-700 border border-gray-300';
     }
   }
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Project Assessment Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -48,7 +48,7 @@
     </nav>
 
     <div id="page-assessment" class="page">
-        <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-gray-900 mb-4">AI Project Assessment</h2>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -94,7 +94,7 @@
                     </div>
                 </div>
 
-                <div id="questionContainer" class="hidden p-8"></div>
+                <div id="questionContainer" class="hidden p-4 sm:p-6 lg:p-8"></div>
 
                 <div id="wizardNav" class="hidden flex justify-between items-center p-6 bg-gray-50 border-t">
                     <button id="prevBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors">
@@ -109,26 +109,23 @@
                 </div>
 
                 <div id="assessmentResult" class="hidden">
-                <div id="insufficientInfoWarning" class="hidden">
+                    <div id="insufficientInfoWarning" class="hidden"></div>
+                    <div id="standardResult" class="p-4 md:p-6 lg:p-8"></div>
+                    <div class="flex justify-center space-x-4 mt-8 mb-8">
+                        <button 
+                        id="startOverResultBtn" 
+                        class="bg-white border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium py-2.5 px-5 rounded-md shadow-sm transition-colors duration-150 ease-in-out"
+                        >
+                        Start Over
+                        </button>
+                        
+                        <button 
+                        id="saveAssessmentBtn" 
+                        class="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-md shadow-sm transition-colors duration-150 ease-in-out"
+                        >
+                        Save Assessment
+                        </button>
                     </div>
-                
-                <div id="standardResult" class="hidden p-4 md:p-6 lg:p-8"> </div>
-                
-                <div class="flex justify-center space-x-4 mt-8 mb-8">
-                    <button 
-                    id="startOverResultBtn" 
-                    class="bg-white border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium py-2.5 px-5 rounded-md shadow-sm transition-colors duration-150 ease-in-out"
-                    >
-                    Start Over
-                    </button>
-                    
-                    <button 
-                    id="saveAssessmentBtn" 
-                    class="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-md shadow-sm transition-colors duration-150 ease-in-out"
-                    >
-                    Save Assessment
-                    </button>
-                </div>
                 </div>
 
             </div>
@@ -261,7 +258,7 @@
     
     <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div class="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] flex flex-col">
                 <div class="flex items-center justify-between p-5 border-b bg-gray-50 rounded-t-lg">
                     <h2 id="reviewTitle" class="text-xl font-semibold text-gray-800">Assessment Review</h2>
                     <button id="reviewClose" class="text-gray-500 hover:text-gray-800 text-3xl font-light leading-none">&times;</button>
