@@ -1,17 +1,11 @@
 /**
  * Assessment logic and result generation service.
- * This service now works with the refactored, modular data structure and integrates with Generative AI.
  */
 import { stateManager } from '../managers/state-manager.js';
 import { DataService } from './data-service.js';
-import { ENV } from '../config/env.js'; // Import environment variables
-import { buildAIPrompt } from '../config/prompt-template.js'; // Import the new prompt builder
+import { ApiService } from './api-service.js'; // Import the new ApiService
 
 export class AssessmentService {
-  /**
-   * Generates the final assessment result, now including an AI-powered strategic plan.
-   * @returns {Promise<object|null>} The assessment result object or null on error.
-   */
   static async generateResult() {
     const { currentAnswers, assessmentData } = stateManager.getState();
     
@@ -34,7 +28,8 @@ export class AssessmentService {
     const projectDescription = currentAnswers.project_description;
     if (projectDescription && projectDescription.trim().length >= 20) {
         try {
-            const aiPlan = await this.generateAIPlan(projectDescription, currentAnswers, initialResult);
+            // Use the new ApiService to generate the plan
+            const aiPlan = await ApiService.generateStrategicPlan(projectDescription, currentAnswers, initialResult);
             initialResult.aiGeneratedPlan = aiPlan;
             initialResult.aiPlanStatus = 'success';
         } catch (error) {
@@ -48,45 +43,8 @@ export class AssessmentService {
 
     return initialResult;
   }
-
-  /**
-   * Generates a strategic plan by calling the Gemini API.
-   * @param {string} description - The user's project description.
-   * @param {object} answers - The user's answers to the questionnaire.
-   * @param {object} initialResult - The initial rule-based assessment result.
-   * @returns {Promise<string>} The AI-generated plan as a string.
-   */
-  static async generateAIPlan(description, answers, initialResult) {
-    // The prompt is now built by the imported function
-    const prompt = buildAIPrompt(description, answers, initialResult);
-
-    const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-    const payload = { contents: chatHistory };
-    const apiKey = ENV.GEMINI_API_KEY; 
-    const modelName = ENV.GEMINI_MODEL_NAME;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-    
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
-    }
-
-    const result = await response.json();
-    
-    if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-        return result.candidates[0].content.parts[0].text;
-    } else {
-        console.error("Invalid response structure from AI API:", result);
-        throw new Error("Received an invalid or empty response from the AI service.");
-    }
-  }
-
+  
+  // The rest of the file remains the same...
   static _checkUncertainty(answers) {
     const uncertainAreas = [];
     let totalUncertaintyWeight = 0;

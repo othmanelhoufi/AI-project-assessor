@@ -9,7 +9,7 @@ import { ResultRenderer } from './result-renderer.js';
 import { AssessmentService } from '../services/assessment-service.js';
 import { ModalManager } from './modal-manager.js';
 import { StorageService } from '../services/storage-service.js';
-
+import { QuestionRenderer } from './question-renderer.js'; // Import the new renderer
 
 export class WizardController {
   constructor() {
@@ -32,7 +32,6 @@ export class WizardController {
 
   init() {
     this.progressTracker.init();
-    this.resultRenderer.init();
     this._setupEventListeners();
     this._setupStateSubscriptions();
   }
@@ -54,7 +53,6 @@ export class WizardController {
   }
 
   startAssessment() {
-    stateManager.resetAssessment();
     this._showWizardStep('question');
     this.progressTracker.show();
     this._renderCurrentCategory();
@@ -82,6 +80,7 @@ export class WizardController {
   }
 
   startOver() {
+    stateManager.setState('editingId', null);
     stateManager.resetAssessment();
     this._showWizardStep('start');
     this.progressTracker.hide();
@@ -114,14 +113,15 @@ export class WizardController {
     if (success) {
       await ModalManager.showAlert('Assessment saved successfully!', 'Success', '✅');
       stateManager.setState('editingId', assessment.id);
-      if (window.assessmentApp && window.assessmentApp.historyManager) {
-        window.assessmentApp.historyManager.loadHistory();
-      }
+      stateManager.emit('assessment-saved');
     } else {
       await ModalManager.showAlert('Failed to save assessment. Please try again.', 'Error', '❌');
     }
   }
 
+  /**
+   * CORRECTED: This method now uses QuestionRenderer to simplify its logic.
+   */
   _renderCurrentCategory() {
     const currentCategory = stateManager.getCurrentCategory();
     if (!currentCategory) return;
@@ -129,77 +129,21 @@ export class WizardController {
     const { currentAnswers } = stateManager.getState();
     const questions = currentCategory.questions || [];
 
-    const html = `
+    // Header for the category
+    const headerHtml = `
       <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
         <h2 class="text-2xl font-bold text-gray-900">${currentCategory.name}</h2>
         <p class="mt-2 text-gray-600">${currentCategory.description || ''}</p>
       </div>
-
-      <div class="space-y-6">
-        ${questions.map(question => {
-          const answer = currentAnswers[question.id];
-          let isAnswered = answer !== undefined && answer !== null && answer !== '';
-          if (question.type === 'textarea') {
-            isAnswered = answer && answer.trim().length > 0;
-          }
-
-          const cardBorderColor = isAnswered ? 'border-green-400' : 'border-gray-300';
-          const cardBgColor = isAnswered ? 'bg-green-50' : 'bg-white';
-
-          if (question.type === 'textarea') {
-            const currentLength = answer?.length || 0;
-            const minLength = 20;
-            const lengthColor = currentLength >= minLength ? 'text-green-600' : 'text-red-600';
-
-            return `
-              <div id="question-card-${question.id}" class="bg-white rounded-lg shadow-sm border ${cardBorderColor} ${cardBgColor} p-6 transition-colors duration-300">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">${question.text}</h3>
-                <textarea
-                    id="textarea-${question.id}"
-                    class="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                    placeholder="${question.placeholder || ''}"
-                    oninput="window.assessmentApp.setAnswer('${question.id}', this.value)"
-                >${answer || ''}</textarea>
-                <div class="text-right text-sm mt-2 ${lengthColor}" id="char-count-${question.id}">
-                    ${currentLength} / ${minLength} characters minimum
-                </div>
-              </div>
-            `;
-          }
-
-          return `
-            <div id="question-card-${question.id}" class="bg-white rounded-lg shadow-sm border ${cardBorderColor} ${cardBgColor} p-6 transition-colors duration-300">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">${question.text}</h3>
-              <div class="space-y-3">
-                ${question.options.map(option => {
-                  const isChecked = answer === option.value;
-                  return `
-                    <label class="flex items-start p-4 border rounded-lg cursor-pointer hover:bg-gray-100 transition-colors ${
-                      isChecked ? 'border-indigo-500 bg-indigo-50 shadow-inner' : 'border-gray-200'
-                    }">
-                      <input 
-                        type="radio" 
-                        name="answer-${question.id}" 
-                        value="${option.value}" 
-                        class="mt-1 mr-3 h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                        ${isChecked ? 'checked' : ''}
-                        onchange="window.assessmentApp.setAnswer('${question.id}', '${option.value}')"
-                      >
-                      <div>
-                        <span class="font-medium text-gray-900">${option.label}</span>
-                        ${option.is_uncertain ? '<p class="text-sm text-yellow-700 mt-1">⚠️ This choice indicates uncertainty and may require follow-up.</p>' : ''}
-                      </div>
-                    </label>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
     `;
 
-    this.elements.questionContainer.innerHTML = html;
+    // Render each question using the dedicated renderer
+    const questionsHtml = questions.map(question => {
+      const answer = currentAnswers[question.id];
+      return QuestionRenderer.render(question, answer);
+    }).join('');
+
+    this.elements.questionContainer.innerHTML = headerHtml + `<div class="space-y-6">${questionsHtml}</div>`;
     window.scrollTo(0, 0);
   }
 

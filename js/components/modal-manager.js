@@ -3,9 +3,7 @@
  */
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
-import { ResultRenderer } from './result-renderer.js';
-import { DataService } from '../services/data-service.js';
-// pdf-export-service.js is no longer used.
+import { ReviewRenderer } from './review-renderer.js'; // Import the new renderer
 
 export class ModalManager {
   static showAlert(message, title = CONSTANTS.MODAL_DEFAULTS.ALERT.title, icon = CONSTANTS.MODAL_DEFAULTS.ALERT.icon) {
@@ -101,7 +99,10 @@ export class ModalManager {
     });
   }
   
-  static async showReviewModal(assessment) {
+  /**
+   * CORRECTED: This function now delegates content generation to ReviewRenderer.
+   */
+  static showReviewModal(assessment) {
     const elements = this._getModalElements('review');
     if (!elements.modal) return;
 
@@ -109,7 +110,8 @@ export class ModalManager {
     elements.content.innerHTML = '<div class="text-center text-gray-500">Loading details...</div>';
     elements.modal.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
 
-    const contentHtml = await this._generateReviewContent(assessment);
+    // Get the HTML content from the dedicated renderer.
+    const contentHtml = ReviewRenderer.render(assessment);
     elements.content.innerHTML = contentHtml;
 
     const handleClose = () => {
@@ -129,12 +131,6 @@ export class ModalManager {
     elements.exportPdfBtn.addEventListener('click', handleExport);
   }
 
-  /**
-   * REWRITTEN: Handles PDF export using html2pdf.js for a clean, what-you-see-is-what-you-get result.
-   * @param {object} assessment - The assessment data.
-   * @param {HTMLElement} elementToExport - The HTML element to convert to PDF.
-   * @param {HTMLButtonElement} exportBtn - The export button element to show loading state.
-   */
   static async _exportAssessmentToPdf(assessment, elementToExport, exportBtn) {
     const originalBtnContent = exportBtn.innerHTML;
     
@@ -152,12 +148,11 @@ export class ModalManager {
       const fileName = `${safeName}_report_${timestamp}.pdf`;
 
       const opt = {
-        margin:       15, // Set margins
+        margin:       15,
         filename:     fileName,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false }, // Scale down canvas for better fit
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        // This tells html2pdf to avoid breaking elements with the 'avoid-break' class
         pagebreak:    { mode: ['css', 'legacy'], avoid: '.avoid-break' }
       };
 
@@ -179,67 +174,5 @@ export class ModalManager {
       elements[key] = document.querySelector(selector);
     }
     return elements;
-  }
-
-  static async _generateReviewContent(assessment) {
-    const resultRenderer = new ResultRenderer();
-    const { answers, result } = assessment;
-
-    // Use 'avoid-break' class on elements we don't want to split across pages.
-    let questionsHtml = '<div class="space-y-4">';
-    if (answers && Object.keys(answers).length > 0) {
-      for (const [questionId, answerValue] of Object.entries(answers)) {
-        const question = DataService.getQuestionById(questionId);
-        if (!question) continue;
-        
-        const selectedOption = DataService.getOptionByValue(questionId, answerValue);
-        const isUncertain = selectedOption?.is_uncertain || false;
-
-        questionsHtml += `
-          <div class="border-l-4 ${isUncertain ? 'border-yellow-400 bg-yellow-50' : 'border-green-400 bg-green-50'} pl-4 py-2 rounded-r-md avoid-break">
-            <h4 class="font-medium text-gray-800">${question.text}</h4>
-            <p class="text-sm ${isUncertain ? 'text-yellow-700' : 'text-green-700'}">
-              ${isUncertain ? '⚠️ ' : '✓ '} ${selectedOption ? selectedOption.label : answerValue}
-            </p>
-          </div>
-        `;
-      }
-    } else {
-      questionsHtml += '<p class="text-gray-500">No answers were recorded for this assessment.</p>';
-    }
-    questionsHtml += '</div>';
-
-    let resultHtml = '';
-    if (result) {
-      const tempContainer = document.createElement('div');
-      resultRenderer.elements.standardContainer = tempContainer;
-      resultRenderer.elements.insufficientWarning = tempContainer;
-      resultRenderer.render(result);
-      resultHtml = tempContainer.innerHTML;
-    } else {
-      resultHtml = '<p class="text-gray-500">No result was generated for this assessment.</p>';
-    }
-
-    // This wrapper is the element that will be passed to html2pdf
-    return `
-      <div id="pdf-content-wrapper" class="p-4">
-        <div class="avoid-break mb-8">
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">AI Project Assessment Report</h1>
-          <p class="text-sm text-gray-600">For: ${assessment.name || 'Untitled Assessment'}</p>
-          <p class="text-xs text-gray-400">Date: ${new Date(assessment.date).toLocaleDateString()}</p>
-        </div>
-        
-        <div class="space-y-10">
-          <div class="avoid-break">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
-            ${questionsHtml}
-          </div>
-          <div class="avoid-break">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Assessment Result</h3>
-            ${resultHtml}
-          </div>
-        </div>
-      </div>
-    `;
   }
 }

@@ -13,7 +13,8 @@ export class HistoryManager {
 
   init() {
     this.loadHistory();
-    // Event listeners are now handled by onclick attributes, so no setup is needed here.
+    // Subscribe to the custom event to refresh history when an assessment is saved
+    stateManager.on('assessment-saved', () => this.loadHistory());
   }
 
   loadHistory() {
@@ -41,10 +42,6 @@ export class HistoryManager {
     this.container.innerHTML = html;
   }
 
-  /**
-   * UPDATED: Generates a card for an assessment with Review, Edit, and Delete buttons.
-   * The card itself is no longer clickable.
-   */
   _generateAssessmentCard(assessment) {
     const result = assessment.result || {};
     const feasibility = result.feasibility || {};
@@ -173,7 +170,7 @@ export class HistoryManager {
     stateManager.updateState({
       currentAnswers: assessment.answers || {},
       editingId: id,
-      currentResult: null, // Clear result to re-calculate if needed
+      currentResult: null,
       currentCategoryIndex: 0
     });
 
@@ -181,9 +178,6 @@ export class HistoryManager {
     window.assessmentApp.wizardController.startAssessment();
   }
 
-  /**
-   * NEW: Public method to trigger the review modal.
-   */
   reviewAssessment(id) {
     const assessments = StorageService.loadSavedAssessments();
     const assessment = assessments.find(a => a.id === id);
