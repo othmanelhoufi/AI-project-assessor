@@ -59,7 +59,7 @@ ${initialResultSummary}
 
 **Your Mandate**
 
-Generate a comprehensive, client-ready strategic project plan. The output must be meticulously structured in Markdown format. Adhere STRICTLY to the XML tags provided below for each section. The tone must be authoritative, insightful, and clear. Use tables where specified to present complex information in a digestible format.
+Generate a comprehensive, client-ready strategic project plan. The output must be meticulously structured in Markdown format. Adhere STRICTLY to the XML tags provided below for each section and all sections. The tone must be authoritative, insightful, and clear. Use tables where specified to present complex information in a digestible format.
 
 <master_plan>
 

@@ -3,6 +3,7 @@
  */
 import { DataService } from '../services/data-service.js';
 import { ResultRenderer } from './result-renderer.js';
+import { stateManager } from '../managers/state-manager.js';
 
 export class ReviewRenderer {
   /**
@@ -12,6 +13,7 @@ export class ReviewRenderer {
    */
   static render(assessment) {
     const { answers, result } = assessment;
+    const assessmentData = stateManager.getState('assessmentData');
 
     let questionsHtml = '';
     const projectDescription = answers?.project_description;
@@ -25,30 +27,46 @@ export class ReviewRenderer {
       `;
     }
 
-    questionsHtml += '<div class="space-y-4">';
-    if (answers && Object.keys(answers).length > 0) {
-      for (const [questionId, answerValue] of Object.entries(answers)) {
-        if (questionId === 'project_description') continue;
-        
-        const question = DataService.getQuestionById(questionId);
-        if (!question) continue;
-        
-        const selectedOption = DataService.getOptionByValue(questionId, answerValue);
-        const isUncertain = selectedOption?.is_uncertain || false;
+    if (assessmentData && assessmentData.categories) {
+      const categoriesHtml = assessmentData.categories.map(category => {
+        if (category.name === "Section 6: Project Context") return '';
 
-        questionsHtml += `
-          <div class="border-l-4 ${isUncertain ? 'border-yellow-400 bg-yellow-50' : 'border-green-400 bg-green-50'} pl-4 py-2 rounded-r-md avoid-break">
-            <h4 class="font-medium text-gray-800">${question.text}</h4>
-            <p class="text-sm ${isUncertain ? 'text-yellow-700' : 'text-green-700'}">
-              ${isUncertain ? '⚠️ ' : '✓ '} ${selectedOption ? selectedOption.label : answerValue}
-            </p>
+        const questionsContent = category.questions.map(question => {
+          const answerValue = answers[question.id];
+          if (!answerValue) return ''; // Only show answered questions
+
+          const selectedOption = DataService.getOptionByValue(question.id, answerValue);
+          const isUncertain = selectedOption?.is_uncertain || false;
+
+          return `
+            <div class="border-l-4 ${isUncertain ? 'border-yellow-400 bg-yellow-50' : 'border-green-400 bg-green-50'} pl-4 py-2 rounded-r-md avoid-break">
+              <h4 class="font-medium text-gray-800">${question.text}</h4>
+              <p class="text-sm ${isUncertain ? 'text-yellow-700' : 'text-green-700'}">
+                ${isUncertain ? '⚠️ ' : '✓ '} ${selectedOption ? selectedOption.label : answerValue}
+              </p>
+            </div>
+          `;
+        }).join('');
+
+        if (questionsContent.trim() === '') return '';
+
+        return `
+          <div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">${category.name}</h3>
+            <div class="space-y-4">${questionsContent}</div>
           </div>
         `;
+      }).join('');
+      
+      if(categoriesHtml.trim() !== ''){
+        questionsHtml += `<div class="space-y-8">${categoriesHtml}</div>`;
       }
-    } else {
-      questionsHtml += '<p class="text-gray-500">No answers were recorded for this assessment.</p>';
+
+    } 
+    
+    if (!projectDescription && questionsHtml.trim() === '') {
+      questionsHtml = '<p class="text-gray-500">No answers were recorded for this assessment.</p>';
     }
-    questionsHtml += '</div>';
 
     let resultHtml = '';
     if (result) {

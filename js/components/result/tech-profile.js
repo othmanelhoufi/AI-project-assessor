@@ -1,6 +1,24 @@
 export class ResultTechProfile {
   static render(result) {
     if (!result.techProfile || Object.keys(result.techProfile).length === 0) return '';
+
+    const { Category, summary, ...otherProfileItems } = result.techProfile;
+    const priorityItems = { ...(Category && { Category }), ...(summary && { summary }) };
+
+    const priorityHtml = Object.entries(priorityItems).map(([key, value], index) => `
+        <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}">
+          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${this._formatAspectName(key)}</td>
+          <td class="px-4 py-3 text-sm text-gray-600">${value}</td>
+        </tr>
+      `).join('');
+
+    const otherHtml = Object.entries(otherProfileItems).map(([key, value], index) => `
+        <tr class="${(index + Object.keys(priorityItems).length) % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}">
+          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${this._formatAspectName(key)}</td>
+          <td class="px-4 py-3 text-sm text-gray-600">${value}</td>
+        </tr>
+      `).join('');
+
     return `
         <div class="bg-white shadow-xl rounded-lg p-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
@@ -16,12 +34,8 @@ export class ResultTechProfile {
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                ${Object.entries(result.techProfile).map(([key, value], index) => `
-                  <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}">
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${this._formatAspectName(key)}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">${value}</td>
-                  </tr>
-                `).join('')}
+                ${priorityHtml}
+                ${otherHtml}
               </tbody>
             </table>
           </div>

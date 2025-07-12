@@ -25,6 +25,33 @@
     }
   },
   {
+    "conditions": { "primary_problem": ["anomaly_detection"], "data_labeling": ["fully_labeled"] },
+    "effects": {
+      "techProfileId": "anomaly_detection_supervised",
+      "warnings": ["STRATEGY SHIFT: With fully labeled data, this is a classification problem, which is more robust than unsupervised anomaly detection."]
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["anomaly_detection"], "data_labeling": ["partially_labeled"] },
+    "effects": {
+      "techProfileId": "anomaly_detection_semisupervised",
+      "warnings": ["STRATEGY SHIFT: With partial labels, a semi-supervised approach is recommended for better accuracy than purely unsupervised methods."]
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["anomaly_detection"], "data_labeling": ["unlabeled"] },
+    "effects": {
+      "techProfileId": "anomaly_detection",
+      "warnings": ["STRATEGY NOTE: As the data is completely unlabeled, the only viable approach is Unsupervised Anomaly Detection. If any labeled examples exist, even a few, re-assess using the 'Partially Labeled' option for a more powerful semi-supervised approach."]
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["information_retrieval"], "data_type": ["structured"] },
+    "effects": {
+      "warnings": ["TECHNOLOGY NOTE: For structured data, consider if traditional database queries (SQL, etc.) can solve the problem before implementing a more complex RAG/vector search system."]
+    }
+  },
+  {
     "conditions": { "budget": ["under_50k"], "project_scope": ["mvp", "production"] },
     "effects": {
       "warnings": [
