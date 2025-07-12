@@ -92,14 +92,14 @@ export class ReviewRenderer {
           <div class="lg:col-span-4">
             <div class="sticky top-8">
               <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
-              <div class="max-h-[60vh] overflow-y-auto pr-4">
+              <div class="max-h-[60vh] overflow-y-auto pr-4 pb-4">
                 ${questionsHtml}
               </div>
             </div>
           </div>
           <div class="lg:col-span-8">
             <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Assessment Result</h3>
-            <div class="max-h-[60vh] overflow-y-auto pr-4">
+            <div class="max-h-[60vh] overflow-y-auto pr-4 pb-4">
                 ${resultHtml}
             </div>
           </div>

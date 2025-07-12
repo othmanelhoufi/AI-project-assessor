@@ -1,7 +1,35 @@
 import { ENV } from '../config/env.js';
-import { buildAIPrompt } from '../config/prompt-template.js';
+import { buildAIPrompt, buildAIFeasibilityPrompt } from '../config/prompt-template.js';
 
 export class ApiService {
+
+  /**
+    * NEW: Generates a feasibility explanation for high-risk projects.
+  */
+  static async generateFeasibilityExplanation(description, answers, initialResult) {
+    const { systemPrompt, userPrompt } = buildAIFeasibilityPrompt(description, answers, initialResult);
+    
+    const genAI = new window.GoogleGenerativeAI(ENV.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: ENV.GEMINI_MODEL_NAME,
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+    });
+
+    try {
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      });
+      const response = result.response;
+      if (!response) {
+        throw new Error("Received an invalid or empty response from the AI service.");
+      }
+      return response.text();
+    } catch (error) {
+      console.error("Error calling Gemini API for Feasibility Explanation:", error);
+      throw error;
+    }
+  }
+
   static async generateStrategicPlan(description, answers, initialResult) {
     const { systemPrompt, userPrompt } = buildAIPrompt(description, answers, initialResult);
 
@@ -48,9 +76,9 @@ export class ApiService {
         if (response) {
           const rawText = response.text();
 
-          console.log("--- Raw Gemini API Response (Attempt " + attempt + ") ---");
-          console.log(rawText);
-          console.log("-------------------------------------------------");
+        //   console.log("--- Raw Gemini API Response (Attempt " + attempt + ") ---");
+        //   console.log(rawText);
+        //   console.log("-------------------------------------------------");
 
           const startIndex = rawText.indexOf('<master_plan>');
           const endIndex = rawText.lastIndexOf('</master_plan>');

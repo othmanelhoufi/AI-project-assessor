@@ -5,6 +5,84 @@
 import { DataService } from '../services/data-service.js';
 
 /**
+ * NEW: Constructs a prompt for the Gemini API to explain low feasibility.
+ * @param {string} description - The user's project description.
+ * @param {object} answers - The user's answers to the questionnaire.
+ * @param {object} initialResult - The initial rule-based assessment result.
+ * @returns {object} An object containing the systemPrompt and userPrompt.
+ */
+export const buildAIFeasibilityPrompt = (description, answers, initialResult) => {
+    const systemPrompt = `
+You are a Principal Technology Strategy Consultant and a turnaround specialist. Your specialty is analyzing high-risk AI projects to identify core issues and provide a clear, actionable path to get them back on track. Your clients appreciate your direct, honest, and constructive feedback.
+
+Your communication style is:
+- **Direct but Empathetic:** You clearly state the problems without sugarcoating, but in a way that empowers the client to fix them.
+- **Diagnostic:** You are an expert at pinpointing the root causes of project risk.
+- **Action-Oriented:** Your primary goal is to provide concrete, numbered steps the client can take to improve their project's feasibility.
+- **Structured and Clear:** You use Markdown, especially numbered lists and bolding, to make your recommendations easy to follow.
+
+Your Mandate:
+
+The user has submitted a project for assessment that has been flagged as having LOW or VERY LOW feasibility. Your task is to generate a **Feasibility Explanation**. You must explain *why* the project is high-risk and provide a concrete, step-by-step "get-well" plan.
+
+Your output must be a single block of Markdown text. Adhere strictly to the following structure:
+
+### 1. Overall Feasibility Assessment
+- Start with a clear, one-sentence summary of why the project is currently not feasible as described. (e.g., "This project is currently not feasible due to a critical mismatch between the stated goals and the available data.")
+- Briefly state the primary risk factors (e.g., Data, Budget, Scope, Expertise).
+
+### 2. Core Issues Analysis
+- In this section, you will detail the specific issues. For each major issue identified in the automated assessment's warnings, create a sub-heading.
+- **For each issue:**
+    - Explain in simple terms *why* this is a major problem for the project's success.
+    - Connect it back to the user's answers. (e.g., "The goal of building a 'Classification' model is in direct conflict with the provided data being 'Unlabeled'. Supervised learning models require labeled examples to learn from.")
+
+### 3. Actionable "Get-Well" Plan
+- This is the most important section. Provide a numbered list of the most critical actions the client needs to take to de-risk the project and make it feasible.
+- Frame these as commands. (e.g., "1. **Clarify Data Labeling Strategy:** You must either secure a budget for a data annotation phase or pivot the project to an unsupervised learning approach...")
+- These steps should be practical and directly address the issues you identified above.
+
+### 4. Reframing the Opportunity
+- Conclude on a positive and forward-looking note.
+- Briefly explain how addressing these core issues will not only make the project feasible but also lead to a much stronger, more successful outcome in the long run.
+`;
+
+    let qaSummary = 'The user provided the following information through a questionnaire:\n';
+    for (const [questionId, answerValue] of Object.entries(answers)) {
+        if (questionId === 'project_description') continue;
+        const question = DataService.getQuestionById(questionId);
+        const option = DataService.getOptionByValue(questionId, answerValue);
+        if (question && option) {
+            qaSummary += `- Q: ${question.text}\n  A: ${option.label}\n`;
+        }
+    }
+
+    const initialResultSummary = `
+An initial automated assessment flagged this project with **${initialResult.feasibility.confidence} Confidence** and **${initialResult.feasibility.risk} Risk**.
+- **Critical Warnings Triggered:**\n${initialResult.warnings.map(w => `  - ${w}`).join('\n')}
+- **Identified Uncertainties:** The user selected "Not sure" or "No idea" for several critical questions.
+    `;
+
+    const userPrompt = `
+**Client-Provided Information**
+---
+**Project Description:**
+${description}
+---
+**Questionnaire Summary:**
+${qaSummary}
+---
+**Initial Automated Assessment Summary:**
+${initialResultSummary}
+---
+**IMPORTANT:** Now, generate the complete Feasibility Explanation based on all the information provided. The output must be a single, clean block of Markdown text. Do not include any extra conversational text.
+    `;
+
+    return { systemPrompt, userPrompt };
+};
+
+
+/**
  * Constructs a detailed prompt for the Gemini API using advanced prompt engineering techniques.
  * @param {string} description - The user's project description.
  * @param {object} answers - The user's answers to the questionnaire.

@@ -3,7 +3,7 @@
  */
 import { stateManager } from '../managers/state-manager.js';
 import { DataService } from './data-service.js';
-import { ApiService } from './api-service.js'; // Import the new ApiService
+import { ApiService } from './api-service.js'; // Import the ApiService
 
 export class AssessmentService {
   static async generateResult() {
@@ -26,17 +26,36 @@ export class AssessmentService {
     const initialResult = this._generateStandardResult(currentAnswers, assessmentData);
     
     const projectDescription = currentAnswers.project_description;
+    
+    // Only proceed with AI generation if a description is provided
     if (projectDescription && projectDescription.trim().length >= 20) {
-        try {
-            // Use the new ApiService to generate the plan
-            const aiPlan = await ApiService.generateStrategicPlan(projectDescription, currentAnswers, initialResult);
-            initialResult.aiGeneratedPlan = aiPlan;
-            initialResult.aiPlanStatus = 'success';
-        } catch (error) {
-            console.error("AI Plan Generation Failed:", error);
-            initialResult.aiGeneratedPlan = "Failed to generate the AI-powered project plan. This may be due to a network issue or an API error. You can still use the standard assessment below.";
-            initialResult.aiPlanStatus = 'error';
+        const confidence = initialResult.feasibility?.confidence?.toLowerCase();
+
+        // **NEW LOGIC**: Decide which AI function to call based on feasibility confidence.
+        if (confidence === 'low' || confidence === 'very low') {
+            try {
+                const explanation = await ApiService.generateFeasibilityExplanation(projectDescription, currentAnswers, initialResult);
+                initialResult.aiGeneratedPlan = explanation;
+                initialResult.aiPlanStatus = 'success';
+                initialResult.aiPlanType = 'feasibility_explanation'; // Set the new type
+            } catch (error) {
+                console.error("AI Feasibility Explanation Failed:", error);
+                initialResult.aiGeneratedPlan = "Failed to generate the AI-powered feasibility explanation. This may be due to a network issue or an API error. You can still use the standard assessment below.";
+                initialResult.aiPlanStatus = 'error';
+            }
+        } else {
+            try {
+                const aiPlan = await ApiService.generateStrategicPlan(projectDescription, currentAnswers, initialResult);
+                initialResult.aiGeneratedPlan = aiPlan;
+                initialResult.aiPlanStatus = 'success';
+                initialResult.aiPlanType = 'strategic_plan'; // The standard type
+            } catch (error) {
+                console.error("AI Plan Generation Failed:", error);
+                initialResult.aiGeneratedPlan = "Failed to generate the AI-powered project plan. This may be due to a network issue or an API error. You can still use the standard assessment below.";
+                initialResult.aiPlanStatus = 'error';
+            }
         }
+
     } else {
         initialResult.aiPlanStatus = 'skipped';
     }

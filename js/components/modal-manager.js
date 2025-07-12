@@ -4,10 +4,14 @@
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
 import { ReviewRenderer } from './review-renderer.js';
-import { ResultAIPlan } from './result/ai-plan.js';
+import { ResultAIAssistant } from './result/ai-assistant.js'; // UPDATED import
 
 
 export class ModalManager {
+  // By creating a static instance, we ensure that the same object
+  // that controls the slideshow logic is used every time the review modal is opened.
+  static reviewModalAIPlan = new ResultAIAssistant(); // UPDATED instantiation
+
   static showAlert(message, title = CONSTANTS.MODAL_DEFAULTS.ALERT.title, icon = CONSTANTS.MODAL_DEFAULTS.ALERT.icon) {
     return new Promise((resolve) => {
       const elements = this._getModalElements('alert');
@@ -112,13 +116,9 @@ export class ModalManager {
     const contentHtml = ReviewRenderer.render(assessment);
     elements.content.innerHTML = contentHtml;
 
-    // BUG FIX: The slideshow events need to be re-attached after rendering in the modal.
-    if (assessment.result && assessment.result.aiPlanStatus === 'success') {
-      const aiPlan = new ResultAIPlan();
-      // We must re-parse the slides using the same logic to populate the new instance.
-      aiPlan.parseAndSetSlides(assessment.result.aiGeneratedPlan);
-      // Now we can attach the events to the newly rendered elements in the modal.
-      aiPlan.attachSlideshowEvents();
+    if (assessment.result && assessment.result.aiPlanStatus === 'success' && assessment.result.aiPlanType === 'strategic_plan') {
+      this.reviewModalAIPlan.parseAndSetSlides(assessment.result.aiGeneratedPlan);
+      this.reviewModalAIPlan.attachSlideshowEvents();
     }
 
     const handleClose = () => {
