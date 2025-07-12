@@ -15,7 +15,7 @@
           { "value": "information_retrieval", "label": "Search and retrieve information (Information Retrieval)", "effects": { "techProfileId": "rag_search", "roleIds": ["ai_engineer_rag", "data_engineer_etl"], "eta": { "addMin": 1, "addMax": 2 } }},
           { "value": "content_generation", "label": "Generate content (Content Generation)", "effects": { "techProfileId": "generative_ai", "roleIds": ["ai_engineer_llm"], "eta": { "addMin": 1, "addMax": 2 } }},
           { "value": "decision_support", "label": "Automate decision-making (Decision Support)", "effects": { "techProfileId": "decision_support", "roleIds": ["business_analyst"] }},
-          { "value": "anomaly_detection", "label": "Detect anomalies/fraud (Anomaly Detection)", "effects": { "techProfileId": "anomaly_detection", "roleIds": ["ml_engineer_anomaly"], "avoidTech": ["Supervised learning if anomalies are undefined or unlabeled"] }},
+          { "value": "anomaly_detection", "label": "Detect anomalies/fraud (Anomaly Detection)", "effects": { "roleIds": ["ml_engineer_anomaly"], "avoidTech": ["Supervised learning if anomalies are undefined or unlabeled"] }},
           { "value": "optimization", "label": "Optimize processes (Optimization)", "effects": { "techProfileId": "optimization", "roleIds": ["operations_researcher"] }},
           { "value": "data_processing", "label": "Big data processing/analytics (Data Processing)", "effects": { "techProfileId": "data_engineering", "roleIds": ["data_engineer_etl"] }},
           { "value": "agentic_ai", "label": "Automate Complex Tasks (Agentic AI)", "effects": { "techProfileId": "agentic_ai", "roleIds": ["lead_architect", "research_engineer"], "eta": { "addMin": 2, "addMax": 4 }, "warnings": ["EXPERIMENTAL RISK: Agentic systems are unpredictable and represent frontier research", "NO PRODUCTION GUARANTEES: This technology is not ready for mission-critical applications"], "feasibility": { "risk": "Very High", "confidence": "Very Low" } }},
@@ -51,6 +51,17 @@
           { "value": "mixed", "label": "Mixed data types", "effects": { "warnings": ["Multi-modal data significantly increases architectural complexity"], "eta": { "addMin": 2, "addMax": 3 }, "roleIds": ["data_architect"] }},
           { "value": "no_data", "label": "No existing data", "effects": { "warnings": ["CRITICAL BLOCKER: No data means no AI project. Data acquisition is the mandatory first step."], "eta": { "addMin": 3, "addMax": 8 }, "feasibility": { "risk": "Very High", "confidence": "Very Low" }, "roleIds": ["data_strategist"] }, "is_uncertain": true, "uncertainty_weight": 3 },
           { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2 }
+        ]
+      },
+      {
+        "id": "data_labeling",
+        "text": "Is your data labeled for the specific outcome you want to predict?",
+        "options": [
+            { "value": "fully_labeled", "label": "Yes, fully labeled and ready for supervised learning.", "effects": { "feasibility": { "risk": "Low" } } },
+            { "value": "partially_labeled", "label": "Partially labeled, will require some annotation effort.", "effects": { "warnings": ["Data annotation will add to project cost and timeline."], "eta": { "addMin": 1, "addMax": 3 }, "roleIds": ["data_annotator"] } },
+            { "value": "unlabeled", "label": "No, completely unlabeled, will require significant annotation or an unsupervised approach.", "effects": { "warnings": ["CRITICAL: Data labeling is a major project in itself and can be costly and time-consuming. Unsupervised methods should be considered."], "eta": { "addMin": 2, "addMax": 6 }, "roleIds": ["data_annotator", "domain_expert"], "feasibility": { "risk": "High" }, "avoidTech": ["Supervised learning until data is labeled."] } },
+            { "value": "not_applicable", "label": "Not applicable (e.g., for unsupervised learning like clustering, or rule-based systems)." },
+            { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2, "effects": { "warnings": ["Data labeling status must be clarified immediately as it is critical to project planning."] } }
         ]
       },
       {
@@ -217,6 +228,18 @@
           { "value": "none", "label": "No specific regulations beyond standard practice" },
           { "value": "no_idea", "label": "No idea / Not sure", "is_uncertain": true, "uncertainty_weight": 2, "effects": { "warnings": ["Regulatory landscape assessment required"] }}
         ]
+      }
+    ]
+  },
+  {
+    "name": "Section 6: Project Context",
+    "description": "Provide a detailed description of your project to generate a customized strategic plan.",
+    "questions": [
+      {
+        "id": "project_description",
+        "text": "Describe your project in detail. What is the main goal? What is the business context? Who are the users? The more detail you provide, the better the AI-generated plan will be.",
+        "type": "textarea",
+        "placeholder": "For example: We are a retail company wanting to build a system to predict customer churn. The goal is to identify at-risk customers and target them with retention campaigns. The users will be the marketing team..."
       }
     ]
   }

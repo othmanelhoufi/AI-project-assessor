@@ -40,9 +40,19 @@
     "ApproachGuidance": "Start with rule-based systems for well-defined decisions. Use ML when patterns are complex or rules are hard to define explicitly."
   },
   "anomaly_detection": {
-    "Category": "Classical ML (Unsupervised/Semi-supervised)",
-    "summary": "Anomaly detection is highly domain-specific. Success depends on understanding normal vs. abnormal patterns in your specific context.",
-    "ApproachGuidance": "Use statistical methods for simple cases, ML for complex patterns. Consider ensemble approaches for robust detection."
+    "Category": "Classical ML (Unsupervised Anomaly Detection)",
+    "summary": "For unlabeled data, this approach identifies data points that deviate from the norm. Success depends on clear separation between normal and abnormal patterns.",
+    "ApproachGuidance": "Use algorithms like Isolation Forest, Local Outlier Factor (LOF), or Autoencoders. Threshold tuning is critical to balance sensitivity and false positives."
+  },
+  "anomaly_detection_supervised": {
+    "Category": "Classical ML (Supervised Classification)",
+    "summary": "With fully labeled data, anomaly detection becomes a classification problem. This is a more robust approach if labels are reliable.",
+    "ApproachGuidance": "Treat anomalies as a class. Use classifiers like Random Forest or Gradient Boosting. Address significant class imbalance with techniques like SMOTE or class weights."
+  },
+  "anomaly_detection_semisupervised": {
+    "Category": "Classical ML (Semi-Supervised Learning)",
+    "summary": "With partially labeled data, use a semi-supervised approach. Use the labeled examples to guide the model's learning process.",
+    "ApproachGuidance": "Use techniques like label propagation or build a model on the labeled portion and use it to score unlabeled data. This can be more accurate than purely unsupervised methods."
   },
   "optimization": {
     "Category": "Operations Research / Reinforcement Learning",

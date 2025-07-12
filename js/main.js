@@ -36,9 +36,15 @@ class AIProjectAssessmentApp {
 
   _setupGlobalEvents() {
     const startBtn = document.querySelector(DOM_SELECTORS.wizard.startBtn);
+    
+    /**
+     * CORRECTED: The click handler for the main "Start" button now explicitly
+     * resets the application state to ensure a fresh start.
+     */
     startBtn?.addEventListener('click', () => {
-      stateManager.setState('editingId', null);
-      this.wizardController.startAssessment();
+      stateManager.setState('editingId', null); // Ensure not in edit mode
+      stateManager.resetAssessment();          // Reset answers and progress
+      this.wizardController.startAssessment(); // Start the wizard UI
     });
 
     window.addEventListener('popstate', (event) => {
@@ -49,7 +55,7 @@ class AIProjectAssessmentApp {
   _handleInitialPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const page = urlParams.get('page') || 'assessment';
-    this.navigationManager.showPage(page, true); // Pass true to avoid pushing state on initial load
+    this.navigationManager.showPage(page, true);
   }
 
   async _handleInitializationError(error) {
@@ -61,7 +67,6 @@ class AIProjectAssessmentApp {
     </div>`;
   }
 
-  // Public methods for global access from HTML onclick handlers
   setAnswer(questionId, value) {
     this.wizardController.setAnswer(questionId, value);
   }
@@ -74,9 +79,6 @@ class AIProjectAssessmentApp {
     return this.historyManager.editAssessment(id);
   }
 
-  /**
-   * UPDATED: Expose the reviewAssessment method globally.
-   */
   reviewAssessment(id) {
     return this.historyManager.reviewAssessment(id);
   }
@@ -84,7 +86,6 @@ class AIProjectAssessmentApp {
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = new AIProjectAssessmentApp();
-  // Make app available globally for HTML onclick handlers
   window.assessmentApp = app;
   app.init();
 });

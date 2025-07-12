@@ -1,8 +1,14 @@
 /**
- * Result display and formatting component
+ * Result display and formatting orchestrator
  */
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
+import { ResultHeader } from './result/header.js';
+import { ResultWarnings } from './result/warnings.js';
+import { ResultFeasibility } from './result/feasibility.js';
+import { ResultTechProfile } from './result/tech-profile.js';
+import { ResultTeam } from './result/team.js';
+import { ResultAIAssistant } from './result/ai-assistant.js'; // UPDATED import
 
 export class ResultRenderer {
   constructor() {
@@ -10,13 +16,12 @@ export class ResultRenderer {
       insufficientWarning: document.querySelector(DOM_SELECTORS.results.insufficientWarning),
       standardContainer: document.querySelector(DOM_SELECTORS.results.standardContainer)
     };
-  }
-
-  init() {
-    // Initialize if needed
+    this.aiAssistant = new ResultAIAssistant(); // UPDATED instantiation
+    this.loadingInterval = null;
   }
 
   render(result) {
+    this._stopLoadingAnimation();
     if (!result) {
       this._renderError();
       return;
@@ -25,7 +30,94 @@ export class ResultRenderer {
     if (result.insufficientInfo) {
       this._renderInsufficientInfo(result);
     } else {
-      this._renderStandardResult(result);
+      this.elements.standardContainer.innerHTML = this._generateStandardResultHTML(result);
+      // Attach events if it was a strategic plan with a slideshow
+      if (result.aiPlanType === 'strategic_plan') {
+          this.aiAssistant.attachSlideshowEvents();
+      }
+    }
+  }
+
+  renderLoading() {
+    this.elements.standardContainer?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
+    this.elements.insufficientWarning?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
+    
+    if (this.elements.standardContainer) {
+        this.elements.standardContainer.innerHTML = `
+            <div class="text-center p-8">
+                <div class="flex justify-center items-center mb-6">
+                    <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Building Your AI Strategy...</h3>
+                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Our AI is analyzing your responses to create a detailed feasibility assessment and strategic roadmap. Please wait a moment.</p>
+                <div id="loading-steps" class="mt-8 space-y-3 inline-block text-left"></div>
+            </div>
+        `;
+        this._startLoadingAnimation();
+    }
+  }
+
+  _startLoadingAnimation() {
+    const steps = [
+      'Analyzing business requirements...',
+      'Evaluating data characteristics...',
+      'Assessing technical feasibility...',
+      'Cross-referencing industry best practices...',
+      'Identifying technology profiles...',
+      'Generating and composing strategic roadmap...'
+    ];
+    const container = document.getElementById('loading-steps');
+    if (!container) return;
+
+    container.innerHTML = steps.map((step, index) => `
+      <div id="step-${index}" class="flex items-center text-gray-400 transition-all duration-500">
+        <svg class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" stroke-width="2" class="stroke-current text-gray-300"></circle>
+          <path class="spinner-path" d="M12,2 A10,10 0 0,1 22,12" stroke-width="2" stroke-linecap="round" style="stroke: #a5b4fc; display: none;"></path>
+          <path class="checkmark-path" d="M9 12l2 2 4-4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;"></path>
+        </svg>
+        <span>${step}</span>
+      </div>
+    `).join('');
+
+    let currentStep = 0;
+    const animateStep = () => {
+      if (currentStep >= steps.length) {
+        clearInterval(this.loadingInterval);
+        return;
+      }
+      
+      const stepElement = document.getElementById(`step-${currentStep}`);
+      if (stepElement) {
+        stepElement.classList.remove('text-gray-400');
+        stepElement.classList.add('text-indigo-600', 'font-semibold');
+        stepElement.querySelector('.spinner-path').style.display = 'block';
+      }
+
+      if (currentStep > 0) {
+        const prevStepElement = document.getElementById(`step-${currentStep - 1}`);
+        if (prevStepElement) {
+          prevStepElement.classList.remove('text-indigo-600', 'font-semibold');
+          prevStepElement.classList.add('text-green-600');
+          prevStepElement.querySelector('.spinner-path').style.display = 'none';
+          prevStepElement.querySelector('.checkmark-path').style.display = 'block';
+          prevStepElement.querySelector('circle').classList.add('text-green-500');
+        }
+      }
+      currentStep++;
+    };
+
+    animateStep(); // Start the first step immediately
+    this.loadingInterval = setInterval(animateStep, 1500);
+  }
+
+  _stopLoadingAnimation() {
+    if (this.loadingInterval) {
+      clearInterval(this.loadingInterval);
+      this.loadingInterval = null;
     }
   }
 
@@ -34,9 +126,6 @@ export class ResultRenderer {
     this.elements.insufficientWarning?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
     
     if (this.elements.insufficientWarning) {
-      // Ensure the overall container for this message allows it to take appropriate width
-      // This might be styled by parent CSS for DOM_SELECTORS.results.insufficientWarning
-      // We add py-2 for consistency with the standard results main container.
       this.elements.insufficientWarning.innerHTML = `
       <div class="py-2">
         <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-xl rounded-r-lg p-6 max-w-3xl mx-auto">
@@ -66,16 +155,8 @@ export class ResultRenderer {
     }
   }
 
-  _renderStandardResult(result) {
-    this.elements.insufficientWarning?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
-    this.elements.standardContainer?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
-    
-    if (this.elements.standardContainer) {
-      this.elements.standardContainer.innerHTML = this._generateStandardResultHTML(result);
-    }
-  }
-
   _renderError() {
+    this._stopLoadingAnimation();
     if (this.elements.standardContainer) {
       this.elements.standardContainer.innerHTML = `
         <div class="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -86,256 +167,41 @@ export class ResultRenderer {
     }
   }
 
-  _generateDynamicHeaderCard(result) {
-    let cardText = '';
-    let cardStyle = 'bg-gray-50 border border-gray-300 text-gray-700'; // Default/fallback
-    let icon = '⚙️'; // Default icon
-
-    const scopeTitle = result.scope_title || 'Project';
-    const confidence = result.feasibility?.confidence?.toLowerCase();
-
-    if (confidence === 'high' || confidence === 'very high') {
-      cardText = `This ${scopeTitle} project looks promising and is likely highly feasible.`;
-      cardStyle = 'bg-green-50 border border-green-300 text-green-800';
-      icon = '✅';
-    } else if (confidence === 'medium') {
-      cardText = `This ${scopeTitle} project shows potential, but requires careful planning to ensure feasibility. Consider addressing highlighted warnings and risks.`;
-      cardStyle = 'bg-yellow-50 border border-yellow-300 text-yellow-800';
-      icon = '🤔';
-    } else if (confidence === 'low' || confidence === 'very low') {
-      cardText = `This ${scopeTitle} project faces significant feasibility challenges. Addressing the warnings and risks identified is crucial before proceeding.`;
-      cardStyle = 'bg-red-50 border border-red-300 text-red-700';
-      icon = '⚠️';
-    } else {
-      // Fallback for undefined or unexpected confidence levels
-      cardText = `Assessment summary for this ${scopeTitle} project. Review the details below.`;
-    }
+  _generateStandardResultHTML(result) {
+    const headerCardHtml = ResultHeader.render(result);
+    const warningsHtml = ResultWarnings.render(result);
+    const feasibilityHtml = ResultFeasibility.render(result);
+    const techProfileHtml = ResultTechProfile.render(result);
+    const teamHtml = ResultTeam.render(result);
+    const aiAssistantHtml = this.aiAssistant.render(result); // UPDATED variable name
 
     return `
-      <div class="${cardStyle} shadow-lg rounded-xl p-6 md:p-8 mb-6">
-        <div class="flex items-start">
-          <span class="text-3xl mr-4">${icon}</span>
-          <div>
-            <h2 class="text-xl md:text-2xl font-semibold mb-2">Feasibility Outlook for ${scopeTitle}</h2>
-            <p class="text-base">${cardText}</p>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  _generateStandardResultHTML(result) {
-    let html = ``;
-
-    // 1. Dynamic Header Card
-    html += this._generateDynamicHeaderCard(result);
-
-    // Buffer for sections to reorder
-    let warningsHtml = '';
-    let avoidTechHtml = '';
-    let feasibilityHtml = '';
-    let techProfileHtml = '';
-    let teamHtml = '';
-
-    // Generate Warnings HTML
-    if (result.warnings && result.warnings.length > 0) {
-      warningsHtml = `
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 shadow-xl rounded-r-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-yellow-800 mb-1 flex items-center">
-            <svg class="h-6 w-6 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd"/></svg>
-            Important Warnings
-          </h3>
-          <p class="text-sm text-yellow-600 mb-4 ml-8">Pay close attention to these potential issues.</p>
-          <ul class="space-y-2 ml-8">
-            ${result.warnings.map(warning => `
-              <li class="flex items-start text-yellow-700">
-                <svg class="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.33-.25 3.031-1.743 3.031H4.42c-1.493 0-2.493-1.701-1.743-3.031l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm0-3.75a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 00-.75-.75z" clip-rule="evenodd" /></svg>
-                <span>${warning}</span>
-              </li>`).join('')}
-          </ul>
-        </div>
-      `;
-    }
-
-    // Generate Technologies to Avoid HTML
-    if (result.avoidTech && result.avoidTech.length > 0) {
-      avoidTechHtml = `
-        <div class="bg-red-50 border-l-4 border-red-400 shadow-xl rounded-r-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-red-800 mb-1 flex items-center">
-            <svg class="h-6 w-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-            Technologies to Avoid
-          </h3>
-          <p class="text-sm text-red-600 mb-4 ml-8">Consider alternatives for these technologies or approaches.</p>
-          <ul class="space-y-2 ml-8">
-            ${result.avoidTech.map(tech => `
-              <li class="flex items-start text-red-700">
-                <svg class="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-                <span>${tech}</span>
-              </li>`).join('')}
-          </ul>
-        </div>
-      `;
-    }
-
-    // Generate Combined ETA and Feasibility Card HTML
-    if (result.eta || result.feasibility) {
-      feasibilityHtml = `
-        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
-            <span class="mr-2">📊</span> Project Estimates & Feasibility
-          </h3>
-          <p class="text-sm text-gray-500 mb-6">Key projections for project timeline and viability.</p>
-          <div class="space-y-6">`;
-
-      if (result.feasibility) {
-        feasibilityHtml += `
-            <div class="bg-indigo-50/60 border border-indigo-200 rounded-lg p-5 shadow-md hover:shadow-lg transition-shadow duration-200">
-              <h4 class="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
-                <span class="mr-2">🎯</span> Feasibility Assessment
-              </h4>
-              <div class="space-y-3 text-sm">
-                <div class="flex justify-between items-center">
-                  <span class="font-medium text-gray-700">Risk Level:</span>
-                  <span class="px-3 py-1 rounded-full text-xs font-bold ${this._getRiskBadgeClasses(result.feasibility.risk)}">${result.feasibility.risk}</span>
+        <div class="space-y-8">
+            ${headerCardHtml}
+            <div class="grid grid-cols-1 wide:grid-cols-10 gap-8">
+                
+                <div class="col-span-1 wide:col-span-10">
+                    ${warningsHtml}
                 </div>
-                <div class="flex justify-between items-center">
-                  <span class="font-medium text-gray-700">Feasibility Confidence:</span>
-                  <span class="px-3 py-1 rounded-full text-xs font-bold ${this._getConfidenceBadgeClasses(result.feasibility.confidence)}">${result.feasibility.confidence}</span>
+
+                <div class="col-span-1 wide:col-span-3 space-y-8">
+                    ${feasibilityHtml}
                 </div>
-                ${result.feasibility.summary ? `<p class="mt-3 text-xs text-gray-600 pt-3 border-t border-indigo-200/50">${result.feasibility.summary}</p>` : ''}
-              </div>
-            </div>`;
-      }
 
-      if (result.eta) {
-        feasibilityHtml += `
-            <div class="bg-gray-50/70 border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-              <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                <span class="mr-2">⏱️</span> Timeline Estimate
-              </h4>
-              <div class="text-center">
-                <span class="text-3xl md:text-4xl font-bold text-indigo-600">${result.eta.min === result.eta.max ? `${result.eta.min}` : `${result.eta.min} - ${result.eta.max}`}</span>
-                <span class="text-xl text-gray-500 ml-1">months</span>
-                <p class="text-xs text-gray-500 mt-1">${result.scope_title || 'Project'} Duration</p>
-              </div>
-            </div>`;
-      }
-      feasibilityHtml += `
-          </div>
-        </div>
-      `;
-    }
-
-    // Generate Technology Profile HTML
-    if (result.techProfile && Object.keys(result.techProfile).length > 0) {
-      techProfileHtml = `
-        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
-            <span class="mr-2">🔧</span> Technology Profile
-          </h3>
-          <p class="text-sm text-gray-500 mb-4">Recommended technologies and platforms.</p>
-          <div class="overflow-x-auto rounded-md border border-gray-200">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aspect</th>
-                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recommendation</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                ${Object.entries(result.techProfile).map(([key, value], index) => `
-                  <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}">
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${this._formatAspectName(key)}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${value}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-
-    // Generate Team Composition HTML
-    if (result.roles && Object.keys(result.roles).length > 0) {
-      teamHtml = `
-        <div class="bg-white shadow-xl rounded-lg p-6 mb-6">
-          <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
-            <span class="mr-2">👥</span> Required Team
-          </h3>
-          <p class="text-sm text-gray-500 mb-4">Key roles and expertise needed for successful execution.</p>
-          <div class="space-y-4">
-            ${Object.entries(result.roles).map(([roleKey, role]) => `
-              <div class="bg-indigo-50/50 border border-indigo-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <h4 class="font-semibold text-indigo-800 text-md">${role.title || this._formatAspectName(roleKey)}</h4>
-                <div class="mt-2 space-y-2 text-sm text-gray-700">
-                  ${role.allocation ? `<div><strong class="text-gray-600">Allocation:</strong> ${role.allocation}</div>` : ''}
-                  ${role.priority ? `<div><strong class="text-gray-600">Priority:</strong> ${role.priority}</div>` : ''}
-                  ${role.experience ? `<div><strong class="text-gray-600">Experience:</strong> ${role.experience}</div>` : ''}
-                  ${role.knowledge ? `<div><strong class="text-gray-600">Knowledge:</strong> ${role.knowledge}</div>` : ''}
-                  ${role.criticalSkills ? `<div><strong class="text-gray-600">Critical Skills:</strong> ${Array.isArray(role.criticalSkills) ? role.criticalSkills.join(', ') : role.criticalSkills}</div>` : ''}
+                <div class="col-span-1 wide:col-span-7 space-y-8">
+                    ${techProfileHtml}
                 </div>
-              </div>
-            `).join('')}
-          </div>
+
+                <div class="col-span-1 wide:col-span-10">
+                    ${teamHtml}
+                </div>
+
+                <div class="col-span-1 wide:col-span-10">
+                    ${aiAssistantHtml}
+                </div>
+
+            </div>
         </div>
-      `;
-    }
-
-    // Assemble in new order
-    html += warningsHtml;
-    html += avoidTechHtml;
-    html += feasibilityHtml; // Contains Project Estimates & Feasibility
-    html += techProfileHtml;
-    html += teamHtml;
-
-    return html;
-  }
-
-  _formatAspectName(key) {
-    return  key.replace(/([A-Z])/g, ' $1')
-              .replace(/^./, str => str.toUpperCase())
-              .trim();
-  }
-
-  _getRiskBadgeClasses(risk) {
-    switch (risk?.toLowerCase()) {
-      case 'low':
-        return 'bg-green-100 text-green-800 border border-green-300'; // Light Green
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-300'; // Yellow/Orange
-      case 'high':
-        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
-      case 'very high':
-        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
-      default:
-        return 'bg-gray-100 text-gray-700 border border-gray-300';    // Default
-    }
-  }
-
-  _getConfidenceBadgeClasses(confidenceLevel) {
-    switch (confidenceLevel?.toLowerCase()) {
-      case 'very high':
-        return 'bg-green-100 text-green-800 border border-green-300'; // Light Green
-      case 'high':
-        return 'bg-green-100 text-green-800 border border-green-300'; // Light Green
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-300'; // Yellow/Orange
-      case 'low':
-        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
-      case 'very low':
-        return 'bg-red-100 text-red-700 border border-red-300';       // Light Red
-      default:
-        return 'bg-gray-100 text-gray-700 border border-gray-300';    // Default
-    }
-  }
-
-  _getRiskColor(risk) { // Old method, can be removed if not used elsewhere, but safer to keep for now if other parts depend on it.
-    switch (risk?.toLowerCase()) {
-      case 'low': return 'bg-green-100 text-green-800'; // Kept original values in case this is still used
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'very high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    `;
   }
 }

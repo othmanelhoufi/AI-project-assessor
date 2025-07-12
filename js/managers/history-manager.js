@@ -5,6 +5,8 @@ import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { StorageService } from '../services/storage-service.js';
 import { ModalManager } from '../components/modal-manager.js';
 import { stateManager } from './state-manager.js';
+import { getRiskBadgeClasses, getConfidenceBadgeClasses } from '../utils/ui-helpers.js';
+import { Formatters } from '../utils/formatters.js';
 
 export class HistoryManager {
   constructor() {
@@ -13,14 +15,18 @@ export class HistoryManager {
 
   init() {
     this.loadHistory();
-    // Event listeners are now handled by onclick attributes, so no setup is needed here.
+    // Subscribe to the custom event to refresh history when an assessment is saved
+    stateManager.on('assessment-saved', () => this.loadHistory());
   }
 
   loadHistory() {
     if (!this.container) return;
 
-    const assessments = StorageService.loadSavedAssessments();
+    let assessments = StorageService.loadSavedAssessments();
     
+    // IMPROVEMENT: Sort assessments by date, with the most recent first.
+    assessments.sort((a, b) => new Date(b.date) - new Date(a.date));
+
     if (assessments.length === 0) {
       this.container.innerHTML = `
         <div class="text-center py-12">
@@ -41,10 +47,6 @@ export class HistoryManager {
     this.container.innerHTML = html;
   }
 
-  /**
-   * UPDATED: Generates a card for an assessment with Review, Edit, and Delete buttons.
-   * The card itself is no longer clickable.
-   */
   _generateAssessmentCard(assessment) {
     const result = assessment.result || {};
     const feasibility = result.feasibility || {};
@@ -52,13 +54,14 @@ export class HistoryManager {
     const techProfile = result.techProfile || {};
 
     const title = assessment.name || 'Untitled Assessment';
-    const timestamp = assessment.date ? new Date(assessment.date).toLocaleDateString() : 'N/A';
+    // IMPROVEMENT: Use the new, more detailed timestamp formatter.
+    const timestamp = assessment.date ? Formatters.formatTimestamp(assessment.date) : 'N/A';
     
     const riskLevel = feasibility.risk || 'N/A';
-    const riskColorClasses = this._getRiskBadgeClasses(riskLevel);
+    const riskColorClasses = getRiskBadgeClasses(riskLevel);
 
     const confidenceLevel = feasibility.confidence || 'N/A';
-    const confidenceColorClasses = this._getConfidenceBadgeClasses(confidenceLevel);
+    const confidenceColorClasses = getConfidenceBadgeClasses(confidenceLevel);
 
     let timelineEstimate = 'N/A';
     if (eta.min && eta.max) {
@@ -130,22 +133,6 @@ export class HistoryManager {
     `;
   }
 
-  _getRiskBadgeClasses(risk) {
-    const riskLower = risk?.toLowerCase();
-    if (riskLower === 'low') return 'bg-green-100 text-green-800';
-    if (riskLower === 'medium') return 'bg-yellow-100 text-yellow-800';
-    if (riskLower === 'high' || riskLower === 'very high') return 'bg-red-100 text-red-700';
-    return 'bg-gray-200 text-gray-800';
-  }
-
-  _getConfidenceBadgeClasses(confidence) {
-    const confidenceLower = confidence?.toLowerCase();
-    if (confidenceLower === 'very high' || confidenceLower === 'high') return 'bg-green-100 text-green-800';
-    if (confidenceLower === 'medium') return 'bg-yellow-100 text-yellow-800';
-    if (confidenceLower === 'low' || confidenceLower === 'very low') return 'bg-red-100 text-red-700';
-    return 'bg-gray-200 text-gray-800';
-  }
-
   async deleteAssessment(id) {
     const confirmed = await ModalManager.showConfirm(
       'Are you sure you want to delete this assessment? This action cannot be undone.',
@@ -173,7 +160,7 @@ export class HistoryManager {
     stateManager.updateState({
       currentAnswers: assessment.answers || {},
       editingId: id,
-      currentResult: null, // Clear result to re-calculate if needed
+      currentResult: null,
       currentCategoryIndex: 0
     });
 
@@ -181,9 +168,6 @@ export class HistoryManager {
     window.assessmentApp.wizardController.startAssessment();
   }
 
-  /**
-   * NEW: Public method to trigger the review modal.
-   */
   reviewAssessment(id) {
     const assessments = StorageService.loadSavedAssessments();
     const assessment = assessments.find(a => a.id === id);

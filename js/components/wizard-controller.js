@@ -9,7 +9,7 @@ import { ResultRenderer } from './result-renderer.js';
 import { AssessmentService } from '../services/assessment-service.js';
 import { ModalManager } from './modal-manager.js';
 import { StorageService } from '../services/storage-service.js';
-
+import { QuestionRenderer } from './question-renderer.js'; // Import the new renderer
 
 export class WizardController {
   constructor() {
@@ -24,15 +24,14 @@ export class WizardController {
       resultContainer: document.querySelector(DOM_SELECTORS.wizard.resultContainer),
       prevBtn: document.querySelector(DOM_SELECTORS.buttons.prev),
       nextBtn: document.querySelector(DOM_SELECTORS.buttons.next),
-      startOverNavBtn: document.querySelector(DOM_SELECTORS.buttons.startOverNav), // Changed
-      startOverResultBtn: document.querySelector(DOM_SELECTORS.buttons.startOverResult), // Added
+      startOverNavBtn: document.querySelector(DOM_SELECTORS.buttons.startOverNav),
+      startOverResultBtn: document.querySelector(DOM_SELECTORS.buttons.startOverResult),
       saveBtn: document.querySelector(DOM_SELECTORS.buttons.saveAssessment)
     };
   }
 
   init() {
     this.progressTracker.init();
-    this.resultRenderer.init();
     this._setupEventListeners();
     this._setupStateSubscriptions();
   }
@@ -40,22 +39,21 @@ export class WizardController {
   _setupEventListeners() {
     this.elements.prevBtn?.addEventListener('click', () => this.goToPrevious());
     this.elements.nextBtn?.addEventListener('click', () => this.goToNext());
-    this.elements.startOverNavBtn?.addEventListener('click', () => this.startOver()); // Changed
-    this.elements.startOverResultBtn?.addEventListener('click', () => this.startOver()); // Added
-    // The event listener for the save button is now active
+    this.elements.startOverNavBtn?.addEventListener('click', () => this.startOver());
+    this.elements.startOverResultBtn?.addEventListener('click', () => this.startOver());
     this.elements.saveBtn?.addEventListener('click', () => this.saveAssessment());
   }
 
   _setupStateSubscriptions() {
     stateManager.subscribe('currentCategoryIndex', () => this._updateNavigation());
     stateManager.subscribe('currentAnswers', () => {
+        this.progressTracker.updateProgress();
         this._updateCategoryStyles();
         this._updateNavigation();
     });
   }
 
   startAssessment() {
-    stateManager.resetAssessment();
     this._showWizardStep('question');
     this.progressTracker.show();
     this._renderCurrentCategory();
@@ -83,12 +81,12 @@ export class WizardController {
   }
 
   startOver() {
+    stateManager.setState('editingId', null);
     stateManager.resetAssessment();
     this._showWizardStep('start');
     this.progressTracker.hide();
   }
 
-  // --- [FIX 2] --- Enhance the save function to refresh the history page ---
   async saveAssessment() {
     const assessmentName = stateManager.getState('editingId') 
       ? StorageService.loadSavedAssessments().find(a => a.id === stateManager.getState('editingId'))?.name 
@@ -106,7 +104,7 @@ export class WizardController {
     const assessment = {
       id: stateManager.getState('editingId') || Date.now().toString(),
       name: name,
-      date: new Date().toISOString(), // Use ISO string for consistency
+      date: new Date().toISOString(),
       answers: stateManager.getState('currentAnswers'),
       result: stateManager.getState('currentResult')
     };
@@ -116,57 +114,15 @@ export class WizardController {
     if (success) {
       await ModalManager.showAlert('Assessment saved successfully!', 'Success', '✅');
       stateManager.setState('editingId', assessment.id);
-      // Automatically refresh the history view for immediate feedback
-      if (window.assessmentApp && window.assessmentApp.historyManager) {
-        window.assessmentApp.historyManager.loadHistory();
-      }
+      stateManager.emit('assessment-saved');
     } else {
       await ModalManager.showAlert('Failed to save assessment. Please try again.', 'Error', '❌');
     }
   }
 
-  _renderCurrentQuestion() {
-    const currentQuestion = stateManager.getCurrentQuestion();
-    if (!currentQuestion) return;
-    
-    const { currentAnswers } = stateManager.getState();
-    const currentAnswer = currentAnswers[currentQuestion.id];
-    
-    const html = `
-      <div class="bg-white rounded-lg shadow-sm border p-6">
-        <div class="mb-4">
-          <span class="text-sm font-medium text-indigo-600">${currentQuestion.categoryName}</span>
-        </div>
-        
-        <h2 class="text-xl font-semibold text-gray-900 mb-6">${currentQuestion.text}</h2>
-        
-        <div class="space-y-3">
-          ${currentQuestion.options.map(option => `
-            <label class="flex items-start p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-              currentAnswer === option.value ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'
-            }">
-              <input 
-                type="radio" 
-                name="answer" 
-                value="${option.value}" 
-                class="mt-1 mr-3"
-                ${currentAnswer === option.value ? 'checked' : ''}
-                onchange="window.assessmentApp.setAnswer('${currentQuestion.id}', '${option.value}')"
-              >
-              <div>
-                <div class="font-medium text-gray-900">${option.label}</div>
-                ${option.is_uncertain ? '<div class="text-sm text-yellow-600 mt-1">⚠️ This choice indicates uncertainty</div>' : ''}
-              </div>
-            </label>
-          `).join('')}
-        </div>
-      </div>
-    `;
-    
-    this.elements.questionContainer.innerHTML = html;
-  }
-
-  // MAJOR REVISION: This method now renders a whole category of questions
+  /**
+   * CORRECTED: This method now uses QuestionRenderer to simplify its logic.
+   */
   _renderCurrentCategory() {
     const currentCategory = stateManager.getCurrentCategory();
     if (!currentCategory) return;
@@ -174,71 +130,48 @@ export class WizardController {
     const { currentAnswers } = stateManager.getState();
     const questions = currentCategory.questions || [];
 
-    const html = `
+    // Header for the category
+    const headerHtml = `
       <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
         <h2 class="text-2xl font-bold text-gray-900">${currentCategory.name}</h2>
         <p class="mt-2 text-gray-600">${currentCategory.description || ''}</p>
       </div>
-
-      <div class="space-y-6">
-        ${questions.map(question => {
-          const isAnswered = currentAnswers[question.id] !== undefined;
-          const cardBorderColor = isAnswered ? 'border-green-400' : 'border-gray-300';
-          const cardBgColor = isAnswered ? 'bg-green-50' : 'bg-white';
-
-          return `
-            <div id="question-card-${question.id}" class="bg-white rounded-lg shadow-sm border ${cardBorderColor} ${cardBgColor} p-6 transition-colors duration-300">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">${question.text}</h3>
-              <div class="space-y-3">
-                ${question.options.map(option => {
-                  const isChecked = currentAnswers[question.id] === option.value;
-                  return `
-                    <label class="flex items-start p-4 border rounded-lg cursor-pointer hover:bg-gray-100 transition-colors ${
-                      isChecked ? 'border-indigo-500 bg-indigo-50 shadow-inner' : 'border-gray-200'
-                    }">
-                      <input 
-                        type="radio" 
-                        name="answer-${question.id}" 
-                        value="${option.value}" 
-                        class="mt-1 mr-3 h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                        ${isChecked ? 'checked' : ''}
-                        onchange="window.assessmentApp.setAnswer('${question.id}', '${option.value}')"
-                      >
-                      <div>
-                        <span class="font-medium text-gray-900">${option.label}</span>
-                        ${option.is_uncertain ? '<p class="text-sm text-yellow-700 mt-1">⚠️ This choice indicates uncertainty and may require follow-up.</p>' : ''}
-                      </div>
-                    </label>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
     `;
 
-    this.elements.questionContainer.innerHTML = html;
-    window.scrollTo(0, 0); // Scroll to top when a new section loads
+    // Render each question using the dedicated renderer
+    const questionsHtml = questions.map(question => {
+      const answer = currentAnswers[question.id];
+      return QuestionRenderer.render(question, answer);
+    }).join('');
+
+    this.elements.questionContainer.innerHTML = headerHtml + `<div class="space-y-6">${questionsHtml}</div>`;
+    window.scrollTo(0, 0);
   }
 
-  _completeAssessment() {
-    const result = AssessmentService.generateResult();
-    stateManager.setState('currentResult', result);
-    
+  async _completeAssessment() {
     this.progressTracker.hide();
     this._showWizardStep('result');
+    
+    this.elements.startOverResultBtn?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
+    this.elements.saveBtn?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
+
+    this.resultRenderer.renderLoading();
+
+    const result = await AssessmentService.generateResult();
+    stateManager.setState('currentResult', result);
+    
     this.resultRenderer.render(result);
+    
+    this.elements.startOverResultBtn?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
+    this.elements.saveBtn?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
   }
 
   _showWizardStep(step) {
-    // Hide all steps first
     this.elements.start?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
     this.elements.questionContainer?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
     this.elements.navigation?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
     this.elements.resultContainer?.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
 
-    // Show the relevant step. The buttons are now inside resultContainer, so no extra logic is needed.
     switch (step) {
       case 'start':
         this.elements.start?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
@@ -248,7 +181,6 @@ export class WizardController {
         this.elements.navigation?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
         break;
       case 'result':
-        // This single line now shows the results AND the buttons.
         this.elements.resultContainer?.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
         break;
     }
@@ -269,11 +201,9 @@ export class WizardController {
     this.elements.nextBtn.disabled = !canNext;
     this.elements.nextBtn.classList.toggle('opacity-50', !canNext);
     
-    // Update button text to be more intuitive
     this.elements.nextBtn.textContent = isLastCategory ? 'Complete Assessment' : 'Next Section';
   }
 
-  // NEW METHOD: This lightweight function only updates styles, no re-rendering.
   _updateCategoryStyles() {
     const currentCategory = stateManager.getCurrentCategory();
     if (!currentCategory || !currentCategory.questions) return;
@@ -284,13 +214,28 @@ export class WizardController {
       const card = document.getElementById(`question-card-${question.id}`);
       if (!card) return;
 
-      const isAnswered = currentAnswers[question.id] !== undefined;
+      const answer = currentAnswers[question.id];
+      let isAnswered = false;
+
+      if (question.type === 'textarea') {
+          isAnswered = answer && answer.trim().length > 0;
+          
+          const charCountEl = document.getElementById(`char-count-${question.id}`);
+          if(charCountEl) {
+              const currentLength = answer?.length || 0;
+              const minLength = 300;
+              const lengthColor = currentLength >= minLength ? 'text-green-600' : 'text-red-600';
+              charCountEl.className = `text-right text-sm mt-2 ${lengthColor}`;
+              charCountEl.textContent = `${currentLength} / ${minLength} characters minimum`;
+          }
+      } else {
+          isAnswered = answer !== undefined && answer !== null && answer !== '';
+      }
       
       if (isAnswered) {
         card.classList.remove('border-gray-300', 'bg-white');
         card.classList.add('border-green-400', 'bg-green-50');
       } else {
-        // This case is less likely to be hit but good for completeness
         card.classList.remove('border-green-400', 'bg-green-50');
         card.classList.add('border-gray-300', 'bg-white');
       }

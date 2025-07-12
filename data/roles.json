@@ -13,6 +13,13 @@
     "priority": "High",
     "knowledge": "Business context for feature engineering and validation"
   },
+  "data_annotator": {
+    "title": "Data Annotator / Labeler",
+    "allocation": "Varies",
+    "priority": "High (if data is unlabeled)",
+    "knowledge": "Using data labeling tools (e.g., Labelbox, V7), understanding labeling guidelines.",
+    "criticalSkills": ["Attention to detail", "Consistency", "Subject matter expertise (sometimes required)"]
+  },
   "ai_engineer_nlp": {
     "title": "AI Engineer (NLP)",
     "allocation": "100%",

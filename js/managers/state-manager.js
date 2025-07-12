@@ -1,5 +1,5 @@
 /**
- * Application state management
+ * Application state management with event bus
  */
 export class StateManager {
   constructor() {
@@ -13,18 +13,19 @@ export class StateManager {
     };
     
     this.listeners = new Map();
+    this.eventBus = new Map(); // For general-purpose events
   }
 
-  // State getters
+  // --- State Management ---
   getState(key) {
     return key ? this.state[key] : { ...this.state };
   }
 
-  // State setters with change notification
   setState(key, value) {
     const oldValue = this.state[key];
+    if (oldValue === value) return; // No change
     this.state[key] = value;
-    this._notifyListeners(key, value, oldValue);
+    this._notifyStateListeners(key, value, oldValue);
   }
 
   updateState(updates) {
@@ -33,48 +34,54 @@ export class StateManager {
     }
   }
 
-  // Event system for state changes
+  // --- State Subscription ---
   subscribe(key, callback) {
     if (!this.listeners.has(key)) {
       this.listeners.set(key, new Set());
     }
     this.listeners.get(key).add(callback);
     
-    // Return unsubscribe function
-    return () => {
-      this.listeners.get(key)?.delete(callback);
-    };
+    return () => this.listeners.get(key)?.delete(callback);
   }
 
-  _notifyListeners(key, newValue, oldValue) {
-    const callbacks = this.listeners.get(key);
-    if (callbacks) {
-      callbacks.forEach(callback => {
-        try {
-          callback(newValue, oldValue);
-        } catch (error) {
-          console.error(`Error in state listener for ${key}:`, error);
-        }
-      });
+  _notifyStateListeners(key, newValue, oldValue) {
+    this.listeners.get(key)?.forEach(callback => {
+      try {
+        callback(newValue, oldValue);
+      } catch (error) {
+        console.error(`Error in state listener for ${key}:`, error);
+      }
+    });
+  }
+  
+  // --- Event Bus ---
+  on(eventName, callback) {
+    if (!this.eventBus.has(eventName)) {
+      this.eventBus.set(eventName, new Set());
     }
+    this.eventBus.get(eventName).add(callback);
+    
+    return () => this.eventBus.get(eventName)?.delete(callback);
+  }
+  
+  emit(eventName, payload) {
+    this.eventBus.get(eventName)?.forEach(callback => {
+      try {
+        callback(payload);
+      } catch (error) {
+        console.error(`Error in event handler for ${eventName}:`, error);
+      }
+    });
   }
 
-  // Convenience methods for common operations
+  // --- Assessment Logic & Selectors ---
   resetAssessment() {
-    const updates = {
+    this.updateState({
       currentCategoryIndex: 0,
+      currentAnswers: {},
       currentResult: null,
-    };
-
-    // Only reset answers and editingId if not currently editing
-    if (!this.state.editingId) {
-      updates.currentAnswers = {};
-      updates.editingId = null;
-    }
-    // If we are editing, currentAnswers and editingId are preserved.
-    // currentCategoryIndex is always reset to 0 to start from the beginning.
-
-    this.updateState(updates);
+      editingId: null
+    });
   }
 
   setAnswer(questionId, value) {
@@ -83,27 +90,19 @@ export class StateManager {
     this.setState('currentAnswers', answers);
   }
 
-  getCurrentQuestion() {
-    const { allQuestions, currentCategoryIndex } = this.state;
-    return allQuestions[currentCategoryIndex] || null;
-  }
-
-  // NEW METHOD: Helper to get the full current category object
   getCurrentCategory() {
-    const { assessmentData, currentCategoryIndex } = this.state;
-    return assessmentData.categories?.[currentCategoryIndex] || null;
+    return this.state.assessmentData.categories?.[this.state.currentCategoryIndex] || null;
   }
   
-  // REVISED METHOD: canGoNext now checks all questions in the category
   canGoNext() {
     const currentCategory = this.getCurrentCategory();
-    if (!currentCategory || !currentCategory.questions) {
-      return false;
-    }
+    if (!currentCategory?.questions) return false;
 
-    // Check if every question in the current category has an answer
     return currentCategory.questions.every(question => {
       const answer = this.state.currentAnswers[question.id];
+      if (question.type === 'textarea') {
+        return answer && answer.trim().length >= 300;
+      }
       return answer !== undefined && answer !== null && answer !== '';
     });
   }
@@ -113,9 +112,9 @@ export class StateManager {
   }
 
   isComplete() {
-    return this.state.currentCategoryIndex >= this.state.allQuestions.length;
+    const totalCategories = this.state.assessmentData.categories?.length || 0;
+    return this.state.currentCategoryIndex >= totalCategories;
   }
 }
 
-// Export singleton instance
 export const stateManager = new StateManager();
