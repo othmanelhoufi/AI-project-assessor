@@ -1,0 +1,57 @@
+# .github/workflows/deploy.yml
+
+name: Deploy AI Assessor to GitHub Pages
+
+# Run this workflow automatically on every push to your main branch
+on:
+  push:
+    branches:
+      - feature/ai-strategic-planner # Or whatever your default branch is (e.g., main)
+
+# Sets the permissions for the GitHub token to allow deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # This is the crucial step: Create the env.js file from your secrets
+      - name: Create env.js file from secrets
+        run: |
+          mkdir -p js/config
+          echo "export const ENV = {" > js/config/env.js
+          echo "  GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'," >> js/config/env.js
+          echo "  GEMINI_MODEL_NAME: '${{ secrets.GEMINI_MODEL_NAME }}'," >> js/config/env.js
+          echo "};" >> js/config/env.js
+      
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload the entire repository root to be deployed
+          path: '.'
+
+  deploy:
+    # Requires the build job to be successful
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
