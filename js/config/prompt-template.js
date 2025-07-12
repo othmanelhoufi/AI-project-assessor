@@ -22,42 +22,8 @@ Your communication style is:
 - **Insightful:** You don't just summarize information; you synthesize it to provide unique, actionable insights.
 - **Client-Focused:** You always tie technology recommendations back to tangible business value and outcomes.
 - **Meticulous:** You adhere strictly to the requested output format.
-`;
 
-    let qaSummary = 'The user provided the following information through a questionnaire:\n';
-    for (const [questionId, answerValue] of Object.entries(answers)) {
-        if (questionId === 'project_description') continue;
-        const question = DataService.getQuestionById(questionId);
-        const option = DataService.getOptionByValue(questionId, answerValue);
-        if (question && option) {
-            qaSummary += `- Q: ${question.text}\n  A: ${option.label}\n`;
-        }
-    }
-
-    const initialResultSummary = `
-A preliminary rule-based assessment was generated based on the user's answers:
-- **Feasibility:** Risk is ${initialResult.feasibility.risk}, Confidence is ${initialResult.feasibility.confidence}.
-- **Timeline:** Estimated ${initialResult.eta.min}-${initialResult.eta.max} months for a ${initialResult.scope_title}.
-- **Recommended Tech Profile:** ${JSON.stringify(initialResult.techProfile, null, 2)}
-- **Required Team Roles:** ${Object.values(initialResult.roles).map(r => r.title).join(', ')}
-- **Critical Warnings:**\n${initialResult.warnings.map(w => `  - ${w}`).join('\n')}
-- **Technologies to Avoid:**\n${initialResult.avoidTech.map(t => `  - ${t}`).join('\n')}
-    `;
-
-    const userPrompt = `
-**Client-Provided Information**
----
-**Project Description:**
-${description}
----
-**Questionnaire Summary:**
-${qaSummary}
----
-**Initial Automated Assessment:**
-${initialResultSummary}
----
-
-**Your Mandate**
+Your Mandate:
 
 Generate a comprehensive, client-ready strategic project plan. The output must be meticulously structured in Markdown format. Adhere STRICTLY to the XML tags provided below for each section. The tone must be authoritative, insightful, and clear. Use tables where specified to present complex information in a digestible format. You MUST provide all sections with no exceptions.
 
@@ -110,13 +76,49 @@ Provide a strategic overview of the budget. Since you don't have exact figures, 
 
 <next_steps>
 ### 6. Immediate Next Steps
-Provide a clear, numbered list of the top 3-5 immediate, actionable steps the client must take to get this project started.
+Provide a clear and detailed, numbered list of the top 4-7 immediate, actionable steps the client must take to get this project started.
 1.  [Actionable Step 1]
 2.  [Actionable Step 2]
 3.  [Actionable Step 3]
 </next_steps>
 
 </master_plan>
+`;
+
+    let qaSummary = 'The user provided the following information through a questionnaire:\n';
+    for (const [questionId, answerValue] of Object.entries(answers)) {
+        if (questionId === 'project_description') continue;
+        const question = DataService.getQuestionById(questionId);
+        const option = DataService.getOptionByValue(questionId, answerValue);
+        if (question && option) {
+            qaSummary += `- Q: ${question.text}\n  A: ${option.label}\n`;
+        }
+    }
+
+    const initialResultSummary = `
+A preliminary rule-based assessment was generated based on the user's answers:
+- **Feasibility:** Risk is ${initialResult.feasibility.risk}, Confidence is ${initialResult.feasibility.confidence}.
+- **Timeline:** Estimated ${initialResult.eta.min}-${initialResult.eta.max} months for a ${initialResult.scope_title}.
+- **Recommended Tech Profile:** ${JSON.stringify(initialResult.techProfile, null, 2)}
+- **Required Team Roles:** ${Object.values(initialResult.roles).map(r => r.title).join(', ')}
+- **Critical Warnings:**\n${initialResult.warnings.map(w => `  - ${w}`).join('\n')}
+- **Technologies to Avoid:**\n${initialResult.avoidTech.map(t => `  - ${t}`).join('\n')}
+    `;
+
+    const userPrompt = `
+**Client-Provided Information**
+---
+**Project Description:**
+${description}
+---
+**Questionnaire Summary:**
+${qaSummary}
+---
+**Initial Automated Assessment:**
+${initialResultSummary}
+---
+
+**IMPORTANT:** Now, generate the complete strategic project plan based on all the information provided. The output must be a single, clean block of text starting with \`<master_plan>\` and ending with \`</master_plan>\`, with no additional conversational text.
     `;
 
     return { systemPrompt, userPrompt };

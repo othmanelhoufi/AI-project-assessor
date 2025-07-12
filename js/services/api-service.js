@@ -5,21 +5,16 @@ export class ApiService {
   static async generateStrategicPlan(description, answers, initialResult) {
     const { systemPrompt, userPrompt } = buildAIPrompt(description, answers, initialResult);
 
-    const payload = {
-      system_instruction: {
-        parts: [{ text: systemPrompt }]
+    // Initialize the official Google AI SDK
+    const genAI = new window.GoogleGenerativeAI(ENV.GEMINI_API_KEY);
+
+    // CORRECTED: System instructions are now passed during model initialization[14].
+    const model = genAI.getGenerativeModel({
+      model: ENV.GEMINI_MODEL_NAME,
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
       },
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: userPrompt }]
-        }
-      ]
-    };
-    
-    const apiKey = ENV.GEMINI_API_KEY; 
-    const modelName = ENV.GEMINI_MODEL_NAME;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    });
 
     // Define the sections we expect in the response
     const requiredSections = [
@@ -30,53 +25,65 @@ export class ApiService {
       'budgetary_considerations',
       'next_steps'
     ];
-    
-    // Retry logic
+
+    // Retry logic remains important
     const maxRetries = 3;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+        // CORRECTED: The generateContent call is now cleaner, with all
+        // configuration nested correctly[6][17].
+        const result = await model.generateContent({
+          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+          generationConfig: {
+            // maxOutputTokens: 65000,
+            // thinkingConfig is nested within generationConfig
+            thinkingConfig: {
+              thinkingBudget: 0,
+            }
+          },
         });
 
-        if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
-        }
+        const response = result.response;
 
-        const result = await response.json();
-        
-        if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-            const generatedText = result.candidates[0].content.parts[0].text;
-            
-            // Validate that all required sections are present
-            const allSectionsPresent = requiredSections.every(section => 
-              generatedText.includes(`<${section}>`) && generatedText.includes(`</${section}>`)
-            );
-            
-            if (allSectionsPresent) {
-              // Success! Return the complete plan.
-              return generatedText;
-            } else {
-              console.warn(`Attempt ${attempt}: AI response was missing one or more required sections. Retrying...`);
-              // Continue to the next iteration to retry
-            }
+        if (response) {
+          const rawText = response.text();
+
+          console.log("--- Raw Gemini API Response (Attempt " + attempt + ") ---");
+          console.log(rawText);
+          console.log("-------------------------------------------------");
+
+          const startIndex = rawText.indexOf('<master_plan>');
+          const endIndex = rawText.lastIndexOf('</master_plan>');
+
+          let cleanedText = "";
+          if (startIndex !== -1 && endIndex !== -1) {
+            cleanedText = rawText.substring(startIndex, endIndex + '</master_plan>'.length);
+          } else {
+            console.warn(`Attempt ${attempt}: AI response was missing the <master_plan> container tags. Retrying...`);
+            continue;
+          }
+
+          const allSectionsPresent = requiredSections.every(section =>
+            cleanedText.includes(`<${section}>`) && cleanedText.includes(`</${section}>`)
+          );
+
+          if (allSectionsPresent) {
+            return cleanedText;
+          } else {
+            console.warn(`Attempt ${attempt}: AI response was missing one or more required sub-sections after cleaning. Retrying...`);
+          }
         } else {
-            console.error("Invalid response structure from AI API:", result);
-            throw new Error("Received an invalid or empty response from the AI service.");
+          console.error("Invalid response structure from AI API:", response);
+          throw new Error("Received an invalid or empty response from the AI service.");
         }
       } catch (error) {
         console.error(`Error on attempt ${attempt} calling Gemini API:`, error);
-        // If it's the last attempt, re-throw the error to be caught by the caller
         if (attempt === maxRetries) {
           throw error;
         }
       }
     }
-    
-    // If the loop completes without a valid response
+
     throw new Error(`Failed to generate a complete strategic plan after ${maxRetries} attempts.`);
   }
 }
