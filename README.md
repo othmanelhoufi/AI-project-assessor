@@ -17,42 +17,44 @@ The application follows a highly modular, maintainable architecture with a clear
 
 ```
 AI-Project-Assessment/
-├── index.html                      # Main HTML structure
-├── data/                           # Modular assessment data
-│   ├── categories.json             # Assessment questions and structure
-│   ├── rules.json                  # Conditional logic and rules
-│   ├── roles.json                  # Centralized team role definitions
-│   └── technologies.json           # Centralized technology profiles
-├── js/                             # JavaScript modules
-│   ├── config/                     # Configuration files
-│   │   ├── dom-selectors.js        # Centralized DOM element selectors
-│   │   └── constants.js            # Application constants and settings
-│   ├── services/                   # Business logic and data management
-│   │   ├── storage-service.js      # Local storage operations
-│   │   ├── data-service.js         # Assessment data loading and processing
-│   │   ├── api-service.js          # NEW: Centralized external API calls (e.g., Gemini)
-│   │   └── assessment-service.js   # Core assessment logic
-│   ├── components/                 # UI components and controllers
-│   │   ├── modal-manager.js        # Modal dialog system
-│   │   ├── progress-tracker.js     # Progress indication and tracking
-│   │   ├── question-renderer.js    # NEW: Renders individual question cards
-│   │   ├── review-renderer.js      # NEW: Renders the content for the review modal
-│   │   ├── wizard-controller.js    # Main assessment flow orchestration
-│   │   ├── result-renderer.js      # Orchestrates the display of result components
-│   │   └── result/                 # NEW: Directory for focused result components
-│   │       ├── ai-plan.js          # Renders the AI-generated strategic plan
-│   │       ├── feasibility.js      # Renders feasibility and timeline estimates
-│   │       ├── header.js           # Renders the main result header card
-│   │       ├── team.js             # Renders the required team section
-│   │       ├── tech-profile.js     # Renders the technology profile table
-│   │       └── warnings.js         # Renders warnings and technologies to avoid
-│   ├── managers/                   # Application state and navigation
-│   │   ├── state-manager.js        # Centralized state with a simple event bus
-│   │   ├── navigation-manager.js   # Page-level navigation and URL management
-│   │   └── history-manager.js      # Saved assessment management
-│   └── main.js                     # Application entry point and initialization
-└── README.md                       # Project documentation
-
+├── index.html                          # Main HTML structure
+├── data/                               # Modular assessment data
+│   ├── categories.json                 # Assessment questions and structure
+│   ├── rules.json                      # Conditional logic and rules
+│   ├── roles.json                      # Centralized team role definitions
+│   └── technologies.json               # Centralized technology profiles
+├── js/                                 # JavaScript modules
+│   ├── config/                         # Configuration files
+│   │   ├── dom-selectors.js            # Centralized DOM element selectors
+│   │   └── constants.js                # Application constants and settings
+│   ├── services/                       # Business logic and data management
+│   │   ├── storage-service.js          # Local storage operations
+│   │   ├── data-service.js             # Assessment data loading and processing
+│   │   ├── api-service.js              # NEW: Centralized external API calls (e.g., Gemini)
+│   │   └── assessment-service.js       # Core assessment logic
+│   ├── components/                     # UI components and controllers
+│   │   ├── modal-manager.js            # Modal dialog system
+│   │   ├── progress-tracker.js         # Progress indication and tracking
+│   │   ├── question-renderer.js        # Renders individual question cards
+│   │   ├── review-renderer.js          # Renders the content for the review modal
+│   │   ├── wizard-controller.js        # Main assessment flow orchestration
+│   │   ├── result-renderer.js          # Orchestrates the display of result components
+│   │   └── result/                     # Directory for focused result components
+│   │       ├── ai-plan.js              # Renders the AI-generated strategic plan
+│   │       ├── feasibility.js          # Renders feasibility and timeline estimates
+│   │       ├── header.js               # Renders the main result header card
+│   │       ├── team.js                 # Renders the required team section
+│   │       ├── tech-profile.js         # Renders the technology profile table
+│   │       └── warnings.js             # Renders warnings and technologies to avoid
+│   ├── managers/                       # Application state and navigation
+│   │   ├── state-manager.js            # Centralized state with a simple event bus
+│   │   ├── navigation-manager.js       # Page-level navigation and URL management
+│   │   └── history-manager.js          # Saved assessment management
+│   ├── utils/                          # NEW: General-purpose utility functions
+│   │   ├── formatters.js               # Data formatting functions
+│   │   └── ui-helpers.js               # Functions for generating UI styles
+│   └── main.js                         # Application entry point and initialization
+└── README.md                           # Project documentation
 ```
 
 ## 📁 Detailed File Structure

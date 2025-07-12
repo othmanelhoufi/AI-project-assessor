@@ -4,6 +4,41 @@ export class ResultAIPlan {
     this.currentAiPlanSlide = 0;
   }
 
+  /**
+   * Parses the raw AI-generated plan into an array of slides.
+   * This method is now more robust to handle mixed formatting from the AI.
+   * @param {string} planContent - The raw markdown/XML string from the AI.
+   */
+  parseAndSetSlides(planContent) {
+    if (!planContent) {
+      this.aiPlanSlides = [];
+      return;
+    }
+
+    // 1. Clean the raw content by removing the wrapper tags and trimming whitespace.
+    const cleanContent = planContent.replace(/<\/?master_plan>/g, '').trim();
+
+    // 2. Use a robust regex to find all sections, whether they are in XML tags or plain Markdown.
+    // This looks for <section_tag>content</section_tag> OR ### markdown_content
+    const sectionTags = [
+        'executive_summary', 'strategic_recommendations', 'phased_project_roadmap', 
+        'team_and_resource_plan', 'budgetary_considerations', 'next_steps'
+    ];
+    const sectionRegex = new RegExp(
+      `<(${sectionTags.join('|')})>([\\s\\S]*?)<\\/\\1>|(###[\\s\\S]*?(?=(###\\s)|$))`, 'g'
+    );
+    
+    const matches = [...cleanContent.matchAll(sectionRegex)];
+    
+    this.aiPlanSlides = matches.map(match => {
+      // The content is either from the XML capture group (2) or the Markdown capture group (3)
+      const content = match[2] || match[3];
+      return content.trim();
+    }).filter(slide => slide); // Filter out any accidentally captured empty slides
+
+    this.currentAiPlanSlide = 0;
+  }
+
   render(result) {
     if (!result.aiPlanStatus) return '';
 
@@ -14,39 +49,12 @@ export class ResultAIPlan {
       return `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert"><p>The AI plan was skipped because a project description was not provided. Please start over and fill in the description to use this feature.</p></div>`;
     }
 
-    const planContent = result.aiGeneratedPlan;
-    const sectionTags = [
-        'executive_summary', 
-        'strategic_recommendations', 
-        'phased_project_roadmap', 
-        'team_and_resource_plan', 
-        'budgetary_considerations', 
-        'next_steps'
-    ];
-    const sectionRegex = new RegExp(`<(${sectionTags.join('|')})>([\\s\\S]*?)<\\/\\1>`, 'g');
-    
-    this.aiPlanSlides = [];
-    let match;
-    while ((match = sectionRegex.exec(planContent)) !== null) {
-        // match[2] contains the content inside the specific section tags.
-        // The .trim() function is added here to remove any leading/trailing whitespace and newlines.
-        const sectionContent = match[2].trim(); 
-        if (sectionContent) {
-            this.aiPlanSlides.push(sectionContent);
-        }
-    }
-
-    // Fallback to the old H3-based splitting if the new parsing finds no sections.
-    if (this.aiPlanSlides.length === 0) {
-      console.warn("AI Plan: Could not parse specific XML sections. Falling back to H3-based splitting.");
-      this.aiPlanSlides = result.aiGeneratedPlan.split(/(?=###\s)/g).filter(s => s.trim() !== '');
-    }
-
-    this.currentAiPlanSlide = 0;
+    // Use the new centralized parsing method
+    this.parseAndSetSlides(result.aiGeneratedPlan);
 
     if (this.aiPlanSlides.length === 0) {
-      // If still no slides, render the whole block.
-      return `<div class="prose prose-blue max-w-none bg-gray-50 p-6 rounded-md border">${marked.parse(result.aiGeneratedPlan)}</div>`;
+      // If parsing fails, render the whole block as a fallback.
+      return `<div class="prose prose-blue max-w-none bg-gray-50 p-6 rounded-md border">${marked.parse(result.aiGeneratedPlan || '')}</div>`;
     }
 
     return `

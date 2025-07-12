@@ -1,3 +1,5 @@
+import { Formatters } from '../../utils/formatters.js';
+
 export class ResultTechProfile {
   static render(result) {
     if (!result.techProfile || Object.keys(result.techProfile).length === 0) return '';
@@ -7,14 +9,14 @@ export class ResultTechProfile {
 
     const priorityHtml = Object.entries(priorityItems).map(([key, value], index) => `
         <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}">
-          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${this._formatAspectName(key)}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${Formatters.formatAspectName(key)}</td>
           <td class="px-4 py-3 text-sm text-gray-600">${value}</td>
         </tr>
       `).join('');
 
     const otherHtml = Object.entries(otherProfileItems).map(([key, value], index) => `
         <tr class="${(index + Object.keys(priorityItems).length) % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}">
-          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${this._formatAspectName(key)}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">${Formatters.formatAspectName(key)}</td>
           <td class="px-4 py-3 text-sm text-gray-600">${value}</td>
         </tr>
       `).join('');
@@ -41,11 +43,5 @@ export class ResultTechProfile {
           </div>
         </div>
       `;
-  }
-
-  static _formatAspectName(key) {
-    return  key.replace(/([A-Z])/g, ' $1')
-              .replace(/^./, str => str.toUpperCase())
-              .trim();
   }
 }

@@ -1,3 +1,5 @@
+import { Formatters } from '../../utils/formatters.js';
+
 export class ResultTeam {
   static render(result) {
     if (!result.roles || Object.keys(result.roles).length === 0) return '';
@@ -10,7 +12,7 @@ export class ResultTeam {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${Object.entries(result.roles).map(([roleKey, role]) => `
               <div class="bg-indigo-50/50 border border-indigo-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <h4 class="font-semibold text-indigo-800 text-md">${role.title || this._formatAspectName(roleKey)}</h4>
+                <h4 class="font-semibold text-indigo-800 text-md">${role.title || Formatters.formatAspectName(roleKey)}</h4>
                 <div class="mt-2 space-y-2 text-sm text-gray-700">
                   ${role.allocation ? `<div><strong class="text-gray-600">Allocation:</strong> ${role.allocation}</div>` : ''}
                   ${role.priority ? `<div><strong class="text-gray-600">Priority:</strong> ${role.priority}</div>` : ''}
@@ -23,11 +25,5 @@ export class ResultTeam {
           </div>
         </div>
       `;
-  }
-
-  static _formatAspectName(key) {
-    return  key.replace(/([A-Z])/g, ' $1')
-              .replace(/^./, str => str.toUpperCase())
-              .trim();
   }
 }

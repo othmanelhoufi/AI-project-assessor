@@ -1,3 +1,5 @@
+import { getRiskBadgeClasses, getConfidenceBadgeClasses } from '../../utils/ui-helpers.js';
+
 export class ResultFeasibility {
   static render(result) {
     if (!result.eta && !result.feasibility) return '';
@@ -18,11 +20,11 @@ export class ResultFeasibility {
               <div class="space-y-3 text-sm">
                 <div class="flex justify-between items-center">
                   <span class="font-medium text-gray-700">Risk Level:</span>
-                  <span class="px-3 py-1 rounded-full text-xs font-bold ${this._getRiskBadgeClasses(result.feasibility.risk)}">${result.feasibility.risk}</span>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold ${getRiskBadgeClasses(result.feasibility.risk)}">${result.feasibility.risk}</span>
                 </div>
                 <div class="flex justify-between items-center">
                   <span class="font-medium text-gray-700">Feasibility Confidence:</span>
-                  <span class="px-3 py-1 rounded-full text-xs font-bold ${this._getConfidenceBadgeClasses(result.feasibility.confidence)}">${result.feasibility.confidence}</span>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold ${getConfidenceBadgeClasses(result.feasibility.confidence)}">${result.feasibility.confidence}</span>
                 </div>
                 ${result.feasibility.summary ? `<p class="mt-3 text-xs text-gray-600 pt-3 border-t border-indigo-200/50">${result.feasibility.summary}</p>` : ''}
               </div>
@@ -47,34 +49,5 @@ export class ResultFeasibility {
         </div>
       `;
     return html;
-  }
-
-  static _getRiskBadgeClasses(risk) {
-    switch (risk?.toLowerCase()) {
-      case 'low':
-        return 'bg-green-100 text-green-800 border border-green-300';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-300';
-      case 'high':
-      case 'very high':
-        return 'bg-red-100 text-red-700 border border-red-300';
-      default:
-        return 'bg-gray-100 text-gray-700 border border-gray-300';
-    }
-  }
-
-  static _getConfidenceBadgeClasses(confidenceLevel) {
-    switch (confidenceLevel?.toLowerCase()) {
-      case 'very high':
-      case 'high':
-        return 'bg-green-100 text-green-800 border border-green-300';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-300';
-      case 'low':
-      case 'very low':
-        return 'bg-red-100 text-red-700 border border-red-300';
-      default:
-        return 'bg-gray-100 text-gray-700 border border-gray-300';
-    }
   }
 }

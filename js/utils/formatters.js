@@ -15,6 +15,24 @@ export class Formatters {
     return new Date(date).toLocaleDateString();
   }
 
+  /**
+   * NEW: Formats an ISO date string into a more readable, local timestamp.
+   * @param {string} isoString - The ISO date string to format.
+   * @returns {string} A formatted timestamp (e.g., "7/12/2025, 5:14 PM").
+   */
+  static formatTimestamp(isoString) {
+    if (!isoString) return 'N/A';
+    const date = new Date(isoString);
+    // Use locale-specific formatting for date and time.
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
   static formatDuration(min, max, unit = 'months') {
     if (min === max) {
       return `${min} ${unit}`;
