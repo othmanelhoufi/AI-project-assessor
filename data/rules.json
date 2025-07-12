@@ -1,0 +1,188 @@
+[
+  {
+    "conditions": { "explainability": ["critical"], "primary_problem": ["regression", "classification", "anomaly_detection"] },
+    "effects": {
+      "techProfileId": "xai_mandatory"
+    }
+  },
+  {
+    "conditions": { "error_impact": ["catastrophic"] },
+    "effects": {
+      "techProfileId": "hitl_mandatory",
+      "warnings": ["A formal Model Risk Management framework must be implemented."],
+      "feasibility": {
+        "risk": "Very High",
+        "summary": "Catastrophic error consequences may make AI automation inadvisable."
+      }
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["classification", "regression"], "data_labeling": ["unlabeled"] },
+    "effects": {
+        "warnings": ["CRITICAL MISMATCH: Supervised learning (Classification/Regression) is not possible with unlabeled data. A data annotation phase is a mandatory prerequisite."],
+        "feasibility": { "risk": "Very High", "confidence": "Very Low" },
+        "avoidTech": ["Directly applying supervised learning models."]
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["anomaly_detection"], "data_labeling": ["fully_labeled"] },
+    "effects": {
+      "techProfileId": "anomaly_detection_supervised",
+      "warnings": ["STRATEGY SHIFT: With fully labeled data, this is a classification problem, which is more robust than unsupervised anomaly detection."]
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["anomaly_detection"], "data_labeling": ["partially_labeled"] },
+    "effects": {
+      "techProfileId": "anomaly_detection_semisupervised",
+      "warnings": ["STRATEGY SHIFT: With partial labels, a semi-supervised approach is recommended for better accuracy than purely unsupervised methods."]
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["anomaly_detection"], "data_labeling": ["unlabeled"] },
+    "effects": {
+      "techProfileId": "anomaly_detection",
+      "warnings": ["STRATEGY NOTE: As the data is completely unlabeled, the only viable approach is Unsupervised Anomaly Detection. If any labeled examples exist, even a few, re-assess using the 'Partially Labeled' option for a more powerful semi-supervised approach."]
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["information_retrieval"], "data_type": ["structured"] },
+    "effects": {
+      "warnings": ["TECHNOLOGY NOTE: For structured data, consider if traditional database queries (SQL, etc.) can solve the problem before implementing a more complex RAG/vector search system."]
+    }
+  },
+  {
+    "conditions": { "budget": ["under_50k"], "project_scope": ["mvp", "production"] },
+    "effects": {
+      "warnings": [
+        "CRITICAL BUDGET MISMATCH: Budget is insufficient for MVP or Production scope.",
+        "RECOMMENDATION: Re-scope to PoC or increase budget significantly."
+      ],
+      "feasibility": {
+        "risk": "Very High",
+        "confidence": "Very Low",
+        "summary": "Project scope and budget are fundamentally misaligned. Not viable as stated."
+      }
+    }
+  },
+  {
+    "conditions": { "budget": ["50k_200k"], "project_scope": ["production"], "team_expertise": ["none"] },
+    "effects": {
+      "warnings": [
+        "RISK: Budget may be insufficient for a production system with no internal expertise.",
+        "Consider MVP scope or an increased budget for a comprehensive handover."
+      ],
+      "feasibility": { "risk": "High" }
+    }
+  },
+  {
+    "conditions": { "team_expertise": ["none"], "maintenance": ["automated_retraining", "client_mlops"] },
+    "effects": {
+      "warnings": [
+        "CRITICAL EXPERTISE MISMATCH: No internal AI expertise but expecting complex maintenance.",
+        "This combination is not feasible without significant training or hiring."
+      ],
+      "feasibility": { "risk": "Very High" }
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["computer_vision", "nlp"], "data_volume": ["under_1k_rec"] },
+    "effects": {
+      "techProfile": {
+        "Strategy": "Transfer Learning / Fine-tuning pre-trained models is the ONLY viable approach.",
+        "DataAugmentation": "Aggressive data augmentation and synthetic data generation are required."
+      },
+      "warnings": [
+        "CRITICAL DATA LIMITATION: The dataset is too small for training from scratch.",
+        "Success entirely depends on finding suitable pre-trained models."
+      ],
+      "avoidTech": ["Training new model architectures from scratch."],
+      "feasibility": {
+        "risk": "High",
+        "summary": "Limited data severely constrains approach options."
+      }
+    }
+  },
+  {
+    "conditions": { "data_pii": ["yes"], "primary_problem": ["content_generation", "agentic_ai"] },
+    "effects": {
+      "warnings": [
+        "CRITICAL PRIVACY RISK: Using PII with Generative AI poses extreme privacy and legal risks.",
+        "Data anonymization/pseudonymization is MANDATORY before any LLM interaction.",
+        "Third-party model APIs may retain sensitive data."
+      ],
+      "avoidTech": [
+        "Sending raw PII to third-party model APIs.",
+        "Fine-tuning on un-anonymized sensitive data."
+      ],
+      "feasibility": { "risk": "Very High" }
+    }
+  },
+  {
+    "conditions": { "regulatory": ["strict"], "primary_problem": ["content_generation", "agentic_ai"] },
+    "effects": {
+      "warnings": [
+        "CRITICAL COMPLIANCE RISK: Generative AI in regulated environments requires extensive controls.",
+        "Hallucinations and unpredictable outputs pose major compliance threats.",
+        "May require regulatory approval before deployment."
+      ],
+      "roleIds": ["ai_ethics_advisor"]
+    }
+  },
+  {
+    "conditions": { "primary_problem": ["agentic_ai"], "error_impact": ["catastrophic", "significant"] },
+    "effects": {
+      "warnings": [
+        "EXTREME RISK COMBINATION: Agentic AI with high error impact is not recommended.",
+        "Autonomous systems cannot be trusted in high-stakes environments with current technology."
+      ],
+      "feasibility": {
+        "risk": "Very High",
+        "confidence": "Very Low",
+        "summary": "This combination represents unacceptable risk levels."
+      }
+    }
+  },
+  {
+    "conditions": { "accuracy_req": ["extreme"], "data_volume": ["under_1k_rec", "1k_100k_rec"] },
+    "effects": {
+      "warnings": [
+        "IMPOSSIBLE REQUIREMENTS: Extreme accuracy (>99%) with limited data is typically not achievable.",
+        "Reconsider if this accuracy level is truly necessary."
+      ],
+      "feasibility": {
+        "risk": "Very High",
+        "confidence": "Very Low"
+      }
+    }
+  },
+  {
+    "conditions": { "operational_req": ["high_availability"], "budget": ["under_50k", "50k_200k"] },
+    "effects": {
+      "warnings": [
+        "BUDGET MISMATCH: High availability requirements cannot be met with a limited budget.",
+        "HA infrastructure typically costs $100k+ annually."
+      ]
+    }
+  },
+  {
+    "conditions": { "data_type": ["streaming", "iot_stream"], "team_expertise": ["none", "some_analytics"] },
+    "effects": {
+      "warnings": [
+        "EXPERTISE GAP: Streaming data requires specialized expertise not available internally.",
+        "Streaming systems are significantly more complex than batch processing."
+      ],
+      "roleIds": ["streaming_architect"],
+      "eta": { "addMin": 2, "addMax": 4 }
+    }
+  },
+  {
+    "conditions": { "multi_lingual": ["multi_lingual"], "budget": ["under_50k"] },
+    "effects": {
+      "warnings": [
+        "SCOPE-BUDGET MISMATCH: Multi-lingual support requires significantly more resources.",
+        "Each additional language typically adds 50-100% to the development effort."
+      ]
+    }
+  }
+]

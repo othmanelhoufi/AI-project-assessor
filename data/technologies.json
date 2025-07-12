@@ -1,0 +1,151 @@
+{
+  "regression_ml": {
+    "Category": "Classical ML (Regression)",
+    "summary": "This is a classical machine learning regression problem. Success depends heavily on feature quality and domain expertise.",
+    "ScaleRecommendation": "Use Scikit-learn for <100k records, XGBoost/LightGBM for 100k-1M records, Distributed ML (Spark MLlib) for >1M records."
+  },
+  "classification_ml": {
+    "Category": "Classical ML (Classification)",
+    "summary": "This is a classical machine learning classification problem. Focus on class balance and appropriate evaluation metrics.",
+    "ScaleRecommendation": "Logistic Regression/Random Forest for <50k records, Gradient Boosting for 50k-500k records, Deep Learning for >500k complex records."
+  },
+  "nlp_general": {
+    "Category": "Natural Language Processing (NLP)",
+    "summary": "NLP complexity varies dramatically. Start simple and escalate only when necessary.",
+    "ApproachGuidance": "Simple tasks: Use pre-trained embeddings + classical ML. Complex tasks: Fine-tune transformer models. Document processing: Consider specialized models like LayoutLM."
+  },
+  "computer_vision_general": {
+    "Category": "Computer Vision",
+    "summary": "Computer Vision requires significant computational resources and labeled data. Transfer learning is almost always the right approach.",
+    "ApproachGuidance": "Always start with transfer learning from pre-trained models (ResNet, EfficientNet, YOLO). Only train from scratch if you have >100k labeled images and unique domain requirements."
+  },
+  "ocr_services": {
+    "Category": "OCR / Document AI",
+    "summary": "OCR is a solved problem for most use cases. Focus on post-processing and quality validation rather than building custom models.",
+    "Approach": "Use managed OCR services (Google Vision AI, Azure Read API, AWS Textract) unless you have highly specialized documents that require custom models."
+  },
+  "rag_search": {
+    "Category": "Search / RAG",
+    "summary": "Information retrieval spans from simple search to complex RAG systems. Complexity depends on semantic understanding requirements.",
+    "ApproachGuidance": "Simple keyword search: Elasticsearch. Semantic search: Vector embeddings + vector DB. Question answering: RAG with LLMs."
+  },
+  "generative_ai": {
+    "Category": "Generative AI",
+    "summary": "Content generation is powerful but requires careful output validation and bias monitoring.",
+    "ApproachGuidance": "Start with prompt engineering on existing LLMs. Consider fine-tuning only for very specific domain requirements or style needs."
+  },
+  "decision_support": {
+    "Category": "Varies (Classical ML or Rule-Based)",
+    "summary": "Decision support ranges from simple rule engines to complex ML models. Always implement human oversight for critical decisions.",
+    "ApproachGuidance": "Start with rule-based systems for well-defined decisions. Use ML when patterns are complex or rules are hard to define explicitly."
+  },
+  "anomaly_detection": {
+    "Category": "Classical ML (Unsupervised Anomaly Detection)",
+    "summary": "For unlabeled data, this approach identifies data points that deviate from the norm. Success depends on clear separation between normal and abnormal patterns.",
+    "ApproachGuidance": "Use algorithms like Isolation Forest, Local Outlier Factor (LOF), or Autoencoders. Threshold tuning is critical to balance sensitivity and false positives."
+  },
+  "anomaly_detection_supervised": {
+    "Category": "Classical ML (Supervised Classification)",
+    "summary": "With fully labeled data, anomaly detection becomes a classification problem. This is a more robust approach if labels are reliable.",
+    "ApproachGuidance": "Treat anomalies as a class. Use classifiers like Random Forest or Gradient Boosting. Address significant class imbalance with techniques like SMOTE or class weights."
+  },
+  "anomaly_detection_semisupervised": {
+    "Category": "Classical ML (Semi-Supervised Learning)",
+    "summary": "With partially labeled data, use a semi-supervised approach. Use the labeled examples to guide the model's learning process.",
+    "ApproachGuidance": "Use techniques like label propagation or build a model on the labeled portion and use it to score unlabeled data. This can be more accurate than purely unsupervised methods."
+  },
+  "optimization": {
+    "Category": "Operations Research / Reinforcement Learning",
+    "summary": "Optimization problems require clear objective functions and constraints. Most business optimization can be solved with classical methods.",
+    "ApproachGuidance": "Use classical optimization (linear/nonlinear programming) for well-defined problems. Consider RL for complex, dynamic environments."
+  },
+  "data_engineering": {
+    "Category": "Data Engineering",
+    "summary": "Data processing is infrastructure-heavy. Focus on scalability, reliability, and monitoring from the start.",
+    "ScaleGuidance": "Pandas for <10GB, Polars for 10-100GB, Spark for >100GB or distributed processing needs."
+  },
+  "agentic_ai": {
+    "Category": "Agentic AI / LLM Agents",
+    "summary": "CAUTION: Agentic AI is experimental technology. Approach as a research project with no production guarantees.",
+    "RiskLevel": "EXPERIMENTAL - Bleeding Edge Technology"
+  },
+  "data_processing_structured": {
+    "DataProcessing": "Standard SQL and pandas/polars workflows apply."
+  },
+  "data_processing_text": {
+    "DataProcessing": "Text preprocessing and NLP pipelines required."
+  },
+  "data_processing_images": {
+    "DataProcessing": "Image preprocessing and augmentation pipelines required."
+  },
+  "data_processing_audio": {
+    "SpecializedTools": "Audio processing libraries (librosa, speechrecognition) or API services."
+  },
+  "data_processing_iot": {
+    "Architecture": "Streaming data architecture required."
+  },
+  "approach_small_data": {
+    "RecommendedApproach": "Transfer learning, pre-trained models, or simple classical ML."
+  },
+  "tools_medium_data": {
+    "RecommendedTools": "Pandas, Scikit-learn, XGBoost suitable for this scale."
+  },
+  "processing_large_data": {
+    "DataProcessing": "Spark, Polars, Dask, or chunked processing recommended."
+  },
+  "processing_massive_data": {
+    "DataProcessing": "Distributed processing (Spark, Dask) mandatory.",
+    "Infrastructure": "Cloud data platforms (Databricks, Snowflake, BigQuery) recommended."
+  },
+  "processing_streaming_data": {
+    "DataProcessing": "Stream processing platforms (Kafka, Flink, Kinesis) required."
+  },
+  "arch_realtime": {
+    "Architecture": "Streaming architecture with online learning capabilities."
+  },
+  "arch_daily_batch": {
+    "Architecture": "Batch processing with daily model retraining pipeline."
+  },
+  "arch_periodic_batch": {
+    "Architecture": "Periodic batch processing sufficient."
+  },
+  "xai_critical": {
+    "XAI": "SHAP/LIME implementation required.",
+    "ModelChoice": "Prefer interpretable models (Linear/Logistic Regression, Decision Trees, Rule-based systems)."
+  },
+  "xai_important": {
+    "XAI": "Basic explainability tools for model debugging and validation."
+  },
+  "multilingual_support": {
+    "ModelType": "Multi-lingual models (XLM-R, mBERT) or language-specific models.",
+    "DataRequirements": "Balanced datasets across all target languages."
+  },
+  "arch_ha": {
+    "Architecture": "High-availability, fault-tolerant architecture with redundancy."
+  },
+  "mlops_automated_retraining": {
+    "MLOps": "Automated retraining pipelines (Kubeflow, Vertex AI Pipelines, MLflow) required.",
+    "Monitoring": "Comprehensive model and data drift detection."
+  },
+  "tuning_high_recall": {
+    "ModelTuning": "Optimize for High Recall. Accept higher false alarm rate to minimize missed cases."
+  },
+  "tuning_high_precision": {
+    "ModelTuning": "Optimize for High Precision. Model must be very confident before making positive predictions."
+  },
+  "tuning_balanced": {
+    "ModelTuning": "Optimize for balanced F1-score or overall accuracy."
+  },
+  "compliance_strict": {
+    "Explainability": "Likely mandatory for audit and compliance.",
+    "Auditing": "Complete audit trail of all model decisions and data processing."
+  },
+  "xai_mandatory": {
+    "Explainability": "MANDATORY: Use SHAP or LIME. Strongly prefer interpretable models (Linear/Logistic Regression, Decision Trees).",
+    "ModelComplexity": "Avoid deep learning unless interpretability can be maintained."
+  },
+  "hitl_mandatory": {
+    "Strategy": "MANDATORY Human-in-the-Loop (HITL) validation before any automated action. System should augment, not replace, human experts.",
+    "Validation": "Formal verification methods and extensive testing required."
+  }
+}
