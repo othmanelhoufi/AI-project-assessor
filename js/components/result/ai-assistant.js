@@ -84,17 +84,23 @@ export class ResultAIAssistant {
             ${marked.parse(this.slides[0] || '')}
           </div>
           <div class="flex justify-between items-center mt-4">
-              <button id="ai-plan-prev-btn" class="px-3 md:px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors rounded-lg flex items-center">
-                  <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                  Previous
-              </button>
-              <div id="ai-plan-counter" class="text-sm font-medium text-gray-600">
-                  Section 1 of ${this.slides.length}
+              <div class="w-1/3">
+                <button id="ai-plan-prev-btn" class="px-3 md:px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors rounded-lg flex items-center">
+                    <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Previous
+                </button>
               </div>
-              <button id="ai-plan-next-btn" class="px-3 md:px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center">
-                  Next
-                  <svg class="h-5 w-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-              </button>
+              <div class="w-1/3 text-center">
+                <div id="ai-plan-counter" class="text-sm font-medium text-gray-600">
+                    Section 1 of ${this.slides.length}
+                </div>
+              </div>
+              <div class="w-1/3 flex justify-end">
+                <button id="ai-plan-next-btn" class="px-3 md:px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center">
+                    Next
+                    <svg class="h-5 w-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+              </div>
           </div>
         </div>
       </div>

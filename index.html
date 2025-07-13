@@ -114,18 +114,24 @@
 
                 <div id="questionContainer" class="hidden p-4 sm:p-6 lg:p-8"></div>
 
-                <div id="wizardNav" class="hidden flex justify-between items-center p-6 bg-gray-50 border-t">
-                    <button id="prevBtn" class="px-3 md:px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors rounded-lg flex items-center">
-                        <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        Previous
-                    </button>
-                    <button id="startOverNavBtn" class="px-3 md:px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                        Start Over
-                    </button>
-                    <button id="nextBtn" class="px-3 md:px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center">
-                        Next
-                        <svg class="h-5 w-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
+                <div id="wizardNav" class="hidden flex justify-between items-center p-4 md:p-6 bg-gray-50 border-t">
+                    <div class="w-1/3">
+                        <button id="prevBtn" class="px-3 md:px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors rounded-lg flex items-center">
+                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                            Previous
+                        </button>
+                    </div>
+                    <div class="w-1/3 text-center">
+                        <button id="startOverNavBtn" class="px-3 md:px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                            Start Over
+                        </button>
+                    </div>
+                    <div class="w-1/3 flex justify-end">
+                        <button id="nextBtn" class="px-3 md:px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center">
+                            Next
+                            <svg class="h-5 w-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div id="assessmentResult" class="hidden">

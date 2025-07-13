@@ -98,7 +98,7 @@ export class ReviewRenderer {
             <div id="review-qa" class="lg:col-span-4 tab-panel">
               <div class="lg:sticky top-8">
                 <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-4 border-b pb-2 hidden lg:block">Questions & Answers</h3>
-                <div class="lg:max-h-[calc(95vh-200px)] overflow-y-auto pr-2 lg:pr-4">
+                <div class="lg:max-h-[calc(95vh-200px)] overflow-y-auto pr-2 lg:pr-4 pb-4">
                   ${questionsHtml}
                   <div class="h-24 lg:h-0"></div>
                 </div>
@@ -106,7 +106,7 @@ export class ReviewRenderer {
             </div>
             <div id="review-result" class="lg:col-span-8 tab-panel">
               <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-4 border-b pb-2 hidden lg:block">Assessment Result</h3>
-              <div class="lg:max-h-[calc(95vh-200px)] overflow-y-auto pr-2 lg:pr-4">
+              <div class="lg:max-h-[calc(95vh-200px)] overflow-y-auto pr-2 lg:pr-4 pb-4">
                   ${resultHtml}
                   <div class="h-24 lg:h-0"></div>
               </div>
