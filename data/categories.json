@@ -1,6 +1,6 @@
 [
   {
-    "name": "Section 1: Problem Definition",
+    "name": "Problem Definition",
     "description": "Define the core business problem and the intended scope of the project.",
     "questions": [
       {
@@ -35,7 +35,7 @@
     ]
   },
   {
-    "name": "Section 2: Data Assessment",
+    "name": "Data Assessment",
     "description": "Evaluate the availability, type, volume, and quality of your data.",
     "questions": [
       {
@@ -99,7 +99,7 @@
     ]
   },
   {
-    "name": "Section 3: Technical & Operational",
+    "name": "Technical & Operational",
     "description": "Assess technical requirements like accuracy, explainability, and operational constraints.",
     "questions": [
       {
@@ -146,7 +146,7 @@
     ]
   },
   {
-    "name": "Section 4: Business Context",
+    "name": "Business Context",
     "description": "Understand the business goals, budget, and team capabilities.",
     "questions": [
       {
@@ -195,7 +195,7 @@
     ]
   },
   {
-    "name": "Section 5: Risk & Compliance",
+    "name": "Risk & Compliance",
     "description": "Assess potential risks, error impacts, and regulatory constraints.",
     "questions": [
       {
@@ -232,7 +232,7 @@
     ]
   },
   {
-    "name": "Section 6: Project Context",
+    "name": "Project Context",
     "description": "Provide a detailed description of your project to generate a customized strategic plan.",
     "questions": [
       {

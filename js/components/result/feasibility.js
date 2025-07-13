@@ -23,7 +23,7 @@ export class ResultFeasibility {
                   <span class="px-3 py-1 rounded-full text-xs font-bold ${getRiskBadgeClasses(result.feasibility.risk)}">${result.feasibility.risk}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="font-medium text-gray-700">Feasibility Confidence:</span>
+                  <span class="font-medium text-gray-700">Feasibility:</span>
                   <span class="px-3 py-1 rounded-full text-xs font-bold ${getConfidenceBadgeClasses(result.feasibility.confidence)}">${result.feasibility.confidence}</span>
                 </div>
                 ${result.feasibility.summary ? `<p class="mt-3 text-xs text-gray-600 pt-3 border-t border-indigo-200/50">${result.feasibility.summary}</p>` : ''}

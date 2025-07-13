@@ -29,7 +29,7 @@ export class ReviewRenderer {
 
     if (assessmentData && assessmentData.categories) {
       const categoriesHtml = assessmentData.categories.map(category => {
-        if (category.name === "Section 6: Project Context") return '';
+        if (category.name === "Project Context") return '';
 
         const questionsContent = category.questions.map(question => {
           const answerValue = answers[question.id];
