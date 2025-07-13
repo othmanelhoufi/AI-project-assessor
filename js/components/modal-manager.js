@@ -107,19 +107,23 @@ export class ModalManager {
     const elements = this._getModalElements('review');
     if (!elements.modal) return;
 
-    elements.title.textContent = `Assessment Review: ${assessment.name}`;
+    if (elements.title) {
+        const refId = assessment.id.toString().slice(-6).toUpperCase();
+        elements.title.textContent = `${assessment.name || 'Assessment'} (Ref: ${refId})`;
+    }
+    
     elements.content.innerHTML = '<div class="text-center text-gray-500">Loading details...</div>';
     elements.modal.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
 
     const contentHtml = ReviewRenderer.render(assessment);
     elements.content.innerHTML = contentHtml;
 
-    // BUG FIX: Removed the check for 'aiPlanType'. We only need to know if the AI
-    // content was generated successfully. The component handles the rest.
     if (assessment.result && assessment.result.aiPlanStatus === 'success') {
       this.reviewModalAIPlan.parseAndSetSlides(assessment.result.aiGeneratedPlan);
       this.reviewModalAIPlan.attachSlideshowEvents();
     }
+
+    this._setupReviewTabs(elements.content);
 
     const handleClose = () => {
       elements.modal.classList.add(CONSTANTS.CSS_CLASSES.HIDDEN);
@@ -127,6 +131,54 @@ export class ModalManager {
     };
     
     elements.close.addEventListener('click', handleClose);
+  }
+
+  static _setupReviewTabs(container) {
+    // THE FIX: Check viewport width. 1024px is Tailwind's default 'lg' breakpoint.
+    if (window.innerWidth >= 1024) {
+      // On large screens, ensure all panels are visible, defeating the tab logic.
+      const tabPanels = container.querySelectorAll('.tab-panel');
+      tabPanels.forEach(panel => panel.classList.remove('hidden'));
+      return;
+    }
+    
+    // The rest of this logic will now only run on screens smaller than 1024px.
+    const tabs = container.querySelectorAll('[data-tab-target]');
+    const tabPanels = container.querySelectorAll('.tab-panel');
+
+    if (tabs.length === 0) return;
+
+    // Set initial state for mobile (show first tab, hide others)
+    tabs[0].classList.add('text-blue-600', 'border-blue-600');
+    tabs[0].classList.remove('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+    tabPanels.forEach((panel, index) => {
+        if (index !== 0) {
+            panel.classList.add('hidden');
+        } else {
+            panel.classList.remove('hidden');
+        }
+    });
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => {
+                t.classList.remove('text-blue-600', 'border-blue-600');
+                t.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+            });
+            tab.classList.add('text-blue-600', 'border-blue-600');
+            tab.classList.remove('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+            
+            const target = document.querySelector(tab.dataset.tabTarget);
+            
+            tabPanels.forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            
+            if (target) {
+                target.classList.remove('hidden');
+            }
+        });
+    });
   }
 
   static _getModalElements(type) {

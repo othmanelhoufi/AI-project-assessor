@@ -70,9 +70,6 @@ export const DOM_SELECTORS = {
       title: '#reviewTitle',
       content: '#reviewContent',
       close: '#reviewClose',
-      // closeBtn: '#reviewCloseBtn',
-      // ADDED: Selector for the new export button
-      // exportPdfBtn: '#reviewExportBtn'
     }
   }
 };

@@ -52,7 +52,7 @@ export class ReviewRenderer {
 
         return `
           <div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">${category.name}</h3>
+            <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-4 border-b pb-2">${category.name}</h3>
             <div class="space-y-4">${questionsContent}</div>
           </div>
         `;
@@ -81,28 +81,36 @@ export class ReviewRenderer {
     }
 
     return `
-      <div id="pdf-content-wrapper" class="p-4">
-        <div class="avoid-break mb-8 text-center">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">AI Project Assessment Report</h1>
-          <p class="text-lg text-gray-600">${assessment.name || 'Untitled Assessment'}</p>
-          <p class="text-sm text-gray-400">Date: ${new Date(assessment.date).toLocaleDateString()}</p>
-        </div>
+      <div id="pdf-content-wrapper" class="p-2 lg:p-4">
         
+        <div class="my-4 border-b border-gray-200 lg:hidden">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="review-tabs">
+                <li class="mr-2">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg" data-tab-target="#review-qa">Q&A</button>
+                </li>
+                <li>
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg" data-tab-target="#review-result">Result</button>
+                </li>
+            </ul>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div class="lg:col-span-4">
-            <div class="sticky top-8">
-              <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
-              <div class="max-h-[60vh] overflow-y-auto pr-4 pb-4">
-                ${questionsHtml}
+            <div id="review-qa" class="lg:col-span-4 tab-panel">
+              <div class="lg:sticky top-8">
+                <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-4 border-b pb-2 hidden lg:block">Questions & Answers</h3>
+                <div class="lg:max-h-[calc(95vh-200px)] overflow-y-auto pr-2 lg:pr-4 pb-4">
+                  ${questionsHtml}
+                  <div class="h-24 lg:h-0"></div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="lg:col-span-8">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Assessment Result</h3>
-            <div class="max-h-[60vh] overflow-y-auto pr-4 pb-4">
-                ${resultHtml}
+            <div id="review-result" class="lg:col-span-8 tab-panel">
+              <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-4 border-b pb-2 hidden lg:block">Assessment Result</h3>
+              <div class="lg:max-h-[calc(95vh-200px)] overflow-y-auto pr-2 lg:pr-4 pb-4">
+                  ${resultHtml}
+                  <div class="h-24 lg:h-0"></div>
+              </div>
             </div>
-          </div>
         </div>
       </div>
     `;
