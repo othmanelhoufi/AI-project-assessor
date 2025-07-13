@@ -4,13 +4,11 @@
 import { DOM_SELECTORS } from '../config/dom-selectors.js';
 import { CONSTANTS } from '../config/constants.js';
 import { ReviewRenderer } from './review-renderer.js';
-import { ResultAIAssistant } from './result/ai-assistant.js'; // UPDATED import
+import { ResultAIAssistant } from './result/ai-assistant.js';
 
 
 export class ModalManager {
-  // By creating a static instance, we ensure that the same object
-  // that controls the slideshow logic is used every time the review modal is opened.
-  static reviewModalAIPlan = new ResultAIAssistant(); // UPDATED instantiation
+  static reviewModalAIPlan = new ResultAIAssistant();
 
   static showAlert(message, title = CONSTANTS.MODAL_DEFAULTS.ALERT.title, icon = CONSTANTS.MODAL_DEFAULTS.ALERT.icon) {
     return new Promise((resolve) => {
@@ -116,7 +114,9 @@ export class ModalManager {
     const contentHtml = ReviewRenderer.render(assessment);
     elements.content.innerHTML = contentHtml;
 
-    if (assessment.result && assessment.result.aiPlanStatus === 'success' && assessment.result.aiPlanType === 'strategic_plan') {
+    // BUG FIX: Removed the check for 'aiPlanType'. We only need to know if the AI
+    // content was generated successfully. The component handles the rest.
+    if (assessment.result && assessment.result.aiPlanStatus === 'success') {
       this.reviewModalAIPlan.parseAndSetSlides(assessment.result.aiGeneratedPlan);
       this.reviewModalAIPlan.attachSlideshowEvents();
     }

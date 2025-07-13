@@ -8,7 +8,7 @@ import { ResultWarnings } from './result/warnings.js';
 import { ResultFeasibility } from './result/feasibility.js';
 import { ResultTechProfile } from './result/tech-profile.js';
 import { ResultTeam } from './result/team.js';
-import { ResultAIAssistant } from './result/ai-assistant.js'; // UPDATED import
+import { ResultAIAssistant } from './result/ai-assistant.js';
 
 export class ResultRenderer {
   constructor() {
@@ -16,7 +16,7 @@ export class ResultRenderer {
       insufficientWarning: document.querySelector(DOM_SELECTORS.results.insufficientWarning),
       standardContainer: document.querySelector(DOM_SELECTORS.results.standardContainer)
     };
-    this.aiAssistant = new ResultAIAssistant(); // UPDATED instantiation
+    this.aiAssistant = new ResultAIAssistant();
     this.loadingInterval = null;
   }
 
@@ -31,10 +31,10 @@ export class ResultRenderer {
       this._renderInsufficientInfo(result);
     } else {
       this.elements.standardContainer.innerHTML = this._generateStandardResultHTML(result);
-      // Attach events if it was a strategic plan with a slideshow
-      if (result.aiPlanType === 'strategic_plan') {
-          this.aiAssistant.attachSlideshowEvents();
-      }
+      // BUG FIX: Always call attachSlideshowEvents.
+      // The method itself has a guard to prevent errors if the slideshow doesn't exist.
+      // This simplifies the logic and ensures events are attached when a plan is rendered.
+      this.aiAssistant.attachSlideshowEvents();
     }
   }
 
@@ -173,7 +173,7 @@ export class ResultRenderer {
     const feasibilityHtml = ResultFeasibility.render(result);
     const techProfileHtml = ResultTechProfile.render(result);
     const teamHtml = ResultTeam.render(result);
-    const aiAssistantHtml = this.aiAssistant.render(result); // UPDATED variable name
+    const aiAssistantHtml = this.aiAssistant.render(result);
 
     return `
         <div class="space-y-8">
