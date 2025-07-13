@@ -88,21 +88,32 @@ export class ReviewRenderer {
           <p class="text-sm text-gray-400">Date: ${new Date(assessment.date).toLocaleDateString()}</p>
         </div>
         
+        <div class="mb-4 border-b border-gray-200 lg:hidden">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="review-tabs">
+                <li class="mr-2">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg" data-tab-target="#review-qa">Q&A</button>
+                </li>
+                <li>
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg" data-tab-target="#review-result">Result</button>
+                </li>
+            </ul>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div class="lg:col-span-4">
-            <div class="sticky top-8">
-              <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Questions & Answers</h3>
-              <div class="max-h-[60vh] overflow-y-auto pr-4 pb-4">
-                ${questionsHtml}
+            <div id="review-qa" class="lg:col-span-4 tab-panel">
+              <div class="lg:sticky top-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2 hidden lg:block">Questions & Answers</h3>
+                <div class="max-h-[60vh] overflow-y-auto pr-4 pb-4">
+                  ${questionsHtml}
+                </div>
               </div>
             </div>
-          </div>
-          <div class="lg:col-span-8">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Assessment Result</h3>
-            <div class="max-h-[60vh] overflow-y-auto pr-4 pb-4">
-                ${resultHtml}
+            <div id="review-result" class="lg:col-span-8 tab-panel">
+              <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2 hidden lg:block">Assessment Result</h3>
+              <div class="max-h-[60vh] overflow-y-auto pr-4 pb-4">
+                  ${resultHtml}
+              </div>
             </div>
-          </div>
         </div>
       </div>
     `;
