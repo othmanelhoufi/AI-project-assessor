@@ -5,7 +5,7 @@ export class ResultFeasibility {
     if (!result.eta && !result.feasibility) return '';
     let html = `
         <div class="bg-white shadow-xl rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
+          <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">📊</span> Project Estimates & Feasibility
           </h3>
           <p class="text-sm text-gray-500 mb-6">Key projections for project timeline and viability.</p>
@@ -14,7 +14,7 @@ export class ResultFeasibility {
     if (result.feasibility) {
       html += `
             <div class="flex-1 bg-indigo-50/60 border border-indigo-200 rounded-lg p-5 shadow-md hover:shadow-lg transition-shadow duration-200">
-              <h4 class="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
+              <h4 class="text-base md:text-lg font-semibold text-indigo-800 mb-3 flex items-center">
                 <span class="mr-2">🎯</span> Feasibility Assessment
               </h4>
               <div class="space-y-3 text-sm">
@@ -34,7 +34,7 @@ export class ResultFeasibility {
     if (result.eta) {
       html += `
             <div class="flex-1 bg-gray-50/70 border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col">
-              <h4 class="text-lg font-semibold text-gray-700 flex items-center mb-3">
+              <h4 class="text-base md:text-lg font-semibold text-gray-700 flex items-center mb-3">
                 <span class="mr-2">⏱️</span> Timeline Estimate
               </h4>
               <div class="flex-grow flex flex-col justify-center">

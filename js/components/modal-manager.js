@@ -107,15 +107,17 @@ export class ModalManager {
     const elements = this._getModalElements('review');
     if (!elements.modal) return;
 
-    elements.title.textContent = `Assessment Review: ${assessment.name}`;
+    if (elements.title) {
+        const refId = assessment.id.toString().slice(-6).toUpperCase();
+        elements.title.textContent = `${assessment.name || 'Assessment'} (Ref: ${refId})`;
+    }
+    
     elements.content.innerHTML = '<div class="text-center text-gray-500">Loading details...</div>';
     elements.modal.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
 
     const contentHtml = ReviewRenderer.render(assessment);
     elements.content.innerHTML = contentHtml;
 
-    // BUG FIX: Removed the check for 'aiPlanType'. We only need to know if the AI
-    // content was generated successfully. The component handles the rest.
     if (assessment.result && assessment.result.aiPlanStatus === 'success') {
       this.reviewModalAIPlan.parseAndSetSlides(assessment.result.aiGeneratedPlan);
       this.reviewModalAIPlan.attachSlideshowEvents();

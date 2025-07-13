@@ -120,9 +120,6 @@ export class WizardController {
     }
   }
 
-  /**
-   * CORRECTED: This method now uses QuestionRenderer to simplify its logic.
-   */
   _renderCurrentCategory() {
     const currentCategory = stateManager.getCurrentCategory();
     if (!currentCategory) return;
@@ -133,7 +130,7 @@ export class WizardController {
     // Header for the category
     const headerHtml = `
       <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">${currentCategory.name}</h2>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900">${currentCategory.name}</h2>
         <p class="mt-2 text-gray-600">${currentCategory.description || ''}</p>
       </div>
     `;
@@ -201,7 +198,11 @@ export class WizardController {
     this.elements.nextBtn.disabled = !canNext;
     this.elements.nextBtn.classList.toggle('opacity-50', !canNext);
     
-    this.elements.nextBtn.textContent = isLastCategory ? 'Complete Assessment' : 'Next Section';
+    if (isLastCategory) {
+        this.elements.nextBtn.innerHTML = 'Complete Assessment';
+    } else {
+        this.elements.nextBtn.innerHTML = `Next <svg class="h-5 w-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+    }
   }
 
   _updateCategoryStyles() {

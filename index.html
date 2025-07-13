@@ -32,7 +32,7 @@
                         <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                             <span class="text-white font-bold text-sm">AI</span>
                         </div>
-                        <h1 class="ml-3 text-xl font-bold text-gray-900">Project Assessor</h1>
+                        <h1 class="ml-3 text-lg md:text-xl font-bold text-gray-900">Project Assessor</h1>
                     </div>
                 </div>
                 <div class="hidden md:flex items-center space-x-4">
@@ -68,21 +68,21 @@
     <div id="page-assessment" class="page">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">AI Project Assessment</h2>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">AI Project Assessment</h2>
+                <p class="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
                     Choose the right AI tool for the job, based on facts, not hype.
                 </p>
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
                     <div class="bg-white p-4 rounded-lg shadow-sm border">
-                        <div class="text-blue-600 font-semibold mb-2">📊 Objective Technology Profile</div>
+                        <div class="text-blue-600 font-semibold mb-2 text-sm md:text-base">📊 Objective Technology Profile</div>
                         <p class="text-sm text-gray-600">Clear guidance on whether to use Classical ML, Generative AI, RAG, or other solutions.</p>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-sm border">
-                        <div class="text-green-600 font-semibold mb-2">⏱️ Resource & Timeline Estimates</div>
+                        <div class="text-green-600 font-semibold mb-2 text-sm md:text-base">⏱️ Resource & Timeline Estimates</div>
                         <p class="text-sm text-gray-600">Realistic estimates for project duration and the team expertise required.</p>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-sm border">
-                        <div class="text-orange-600 font-semibold mb-2">⚠️ Risk & Gap Analysis</div>
+                        <div class="text-orange-600 font-semibold mb-2 text-sm md:text-base">⚠️ Risk & Gap Analysis</div>
                         <p class="text-sm text-gray-600">Highlights potential risks and identifies where more information is critically needed.</p>
                     </div>
                 </div>
@@ -94,7 +94,7 @@
                         <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span class="text-white text-2xl">🎯</span>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Ready to Start?</h3>
+                        <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-2">Ready to Start?</h3>
                         <p class="text-gray-600">This 5-minute assessment provides an expert recommendation on the best path forward for your AI project.</p>
                     </div>
                     <button id="startAssessmentBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">
@@ -115,14 +115,16 @@
                 <div id="questionContainer" class="hidden p-4 sm:p-6 lg:p-8"></div>
 
                 <div id="wizardNav" class="hidden flex justify-between items-center p-6 bg-gray-50 border-t">
-                    <button id="prevBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors">
-                        ← Previous
+                    <button id="prevBtn" class="px-3 md:px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors rounded-lg flex items-center">
+                        <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Previous
                     </button>
-                    <button id="startOverNavBtn" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                    <button id="startOverNavBtn" class="px-3 md:px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
                         Start Over
                     </button>
-                    <button id="nextBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
-                        Next →
+                    <button id="nextBtn" class="px-3 md:px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center">
+                        Next
+                        <svg class="h-5 w-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </button>
                 </div>
 
@@ -153,7 +155,7 @@
     <div id="page-history" class="page hidden">
         <div class="max-w-6xl mx-auto px-4 py-8">
             <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-900">Previous Assessments</h2>
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Previous Assessments</h2>
             </div>
             <div id="historyContainer">
                 <div class="text-center py-12">
@@ -166,10 +168,10 @@
 
     <div id="page-resources" class="page hidden">
         <div class="max-w-4xl mx-auto px-4 py-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-8">Resources & Best Practices</h2>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Resources & Best Practices</h2>
             <div class="space-y-6">
                 <div class="bg-white rounded-lg shadow-sm border p-6">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">🎯 Assessment Methodology</h3>
+                    <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-4">🎯 Assessment Methodology</h3>
                     <p class="text-gray-600 mb-4">This assessment tool is designed to counter AI hype and provide fact-based technology recommendations. It evaluates:</p>
                     <ul class="list-disc list-inside text-gray-600 space-y-2">
                         <li>Problem type and complexity</li>
@@ -181,7 +183,7 @@
                 </div>
 
                 <div class="bg-white rounded-lg shadow-sm border p-6">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">📚 Key Principles</h3>
+                    <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-4">📚 Key Principles</h3>
                     <div class="space-y-4">
                         <div>
                             <h4 class="font-medium text-gray-900">Start Simple</h4>
@@ -275,13 +277,13 @@
     </div>
     
     <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg shadow-xl w-[90%] max-h-[95vh] flex flex-col">
-                <div class="flex items-center justify-between p-5 border-b bg-gray-50 rounded-t-lg">
-                    <h2 id="reviewTitle" class="text-xl font-semibold text-gray-800">Assessment Review</h2>
-                    <button id="reviewClose" class="text-gray-500 hover:text-gray-800 text-3xl font-light leading-none">&times;</button>
+        <div class="flex items-center justify-center min-h-screen p-0 lg:p-4">
+            <div class="bg-white shadow-xl w-full h-screen lg:w-[90%] lg:h-auto lg:max-h-[95vh] flex flex-col rounded-none lg:rounded-lg">
+                <div class="flex items-center justify-between p-3 lg:p-5 border-b bg-gray-50 rounded-none lg:rounded-t-lg">
+                    <h2 id="reviewTitle" class="text-base md:text-lg font-semibold text-gray-800 truncate pr-4"></h2>
+                    <button id="reviewClose" class="text-gray-500 hover:text-gray-800 text-3xl font-light leading-none flex-shrink-0">&times;</button>
                 </div>
-                <div id="reviewContent" class="overflow-y-auto p-8 flex-grow bg-white">
+                <div id="reviewContent" class="overflow-y-auto p-3 lg:p-8 flex-grow bg-white">
                     <div class="text-center text-gray-500">Loading...</div>
                 </div>
                 </div>

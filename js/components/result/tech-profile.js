@@ -23,7 +23,7 @@ export class ResultTechProfile {
 
     return `
         <div class="bg-white shadow-xl rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-800 mb-1 flex items-center">
+          <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-1 flex items-center">
             <span class="mr-2">🔧</span> Technology Profile
           </h3>
           <p class="text-sm text-gray-500 mb-4">Recommended technologies and platforms.</p>
