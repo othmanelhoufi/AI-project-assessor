@@ -1,4 +1,5 @@
 # AI Project Assessment Tool
+> CC BY-NC-SA 4.0 License │ Copyright (c) 2025 Othman El Houfi
 
 ## 📋 Project Overview
 
