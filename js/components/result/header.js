@@ -16,7 +16,7 @@ export class ResultHeader {
       cardStyle = 'bg-yellow-50 border border-yellow-300 text-yellow-800';
       icon = '🤔';
     } else if (confidence === 'low' || confidence === 'very low') {
-      cardText = `This ${scopeTitle} project faces significant feasibility challenges. Addressing the warnings and risks identified is crucial before proceeding.`;
+      cardText = `This ${scopeTitle} project faces significant feasibility challenges. Addressing the warnings and risks identified is crucial before proceeding and It's mandatory to review this project with your team of experts.`;
       cardStyle = 'bg-red-50 border border-red-300 text-red-700';
       icon = '⚠️';
     } else {
