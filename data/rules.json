@@ -52,16 +52,29 @@
     }
   },
   {
-    "conditions": { "budget": ["under_50k"], "project_scope": ["mvp", "production"] },
+    "conditions": { "budget": ["under_50k"], "project_scope": ["production"] },
     "effects": {
       "warnings": [
-        "CRITICAL BUDGET MISMATCH: Budget is insufficient for MVP or Production scope.",
-        "RECOMMENDATION: Re-scope to PoC or increase budget significantly."
+        "CRITICAL BUDGET MISMATCH: Budget is insufficient for a full production deployment.",
+        "RECOMMENDATION: Re-scope to PoC or MVP, or increase budget significantly. Production AI systems typically require $150k-$500k+."
       ],
       "feasibility": {
         "risk": "Very High",
         "confidence": "Very Low",
         "summary": "Project scope and budget are fundamentally misaligned. Not viable as stated."
+      }
+    }
+  },
+  {
+    "conditions": { "budget": ["under_50k"], "project_scope": ["mvp"] },
+    "effects": {
+      "warnings": [
+        "BUDGET WARNING: Budget is tight for MVP scope. Industry benchmarks suggest $25k-$120k for a viable MVP.",
+        "RECOMMENDATION: Prioritize a narrow feature set and leverage managed services/APIs to reduce development costs."
+      ],
+      "feasibility": {
+        "risk": "High",
+        "summary": "MVP may be achievable with a tightly scoped feature set, but budget leaves no room for iteration."
       }
     }
   },
@@ -90,11 +103,11 @@
     "effects": {
       "techProfile": {
         "Strategy": "Transfer Learning / Fine-tuning pre-trained models is the ONLY viable approach.",
-        "DataAugmentation": "Aggressive data augmentation and synthetic data generation are required."
+        "DataAugmentation": "Data augmentation and synthetic data generation are strongly recommended to expand effective dataset size."
       },
       "warnings": [
-        "CRITICAL DATA LIMITATION: The dataset is too small for training from scratch.",
-        "Success entirely depends on finding suitable pre-trained models."
+        "DATA LIMITATION: The dataset is small. Transfer learning from pre-trained models is the recommended approach.",
+        "Pre-trained models are available for most common CV and NLP tasks and can achieve strong results even with limited fine-tuning data."
       ],
       "avoidTech": ["Training new model architectures from scratch."],
       "feasibility": {
@@ -133,13 +146,13 @@
     "conditions": { "primary_problem": ["agentic_ai"], "error_impact": ["catastrophic", "significant"] },
     "effects": {
       "warnings": [
-        "EXTREME RISK COMBINATION: Agentic AI with high error impact is not recommended.",
-        "Autonomous systems cannot be trusted in high-stakes environments with current technology."
+        "HIGH RISK COMBINATION: Agentic AI with significant error impact requires extensive safety guardrails.",
+        "Mandatory human-in-the-loop oversight, comprehensive logging, and strict action boundaries are required. Deploy in supervised mode with escalation protocols."
       ],
       "feasibility": {
         "risk": "Very High",
-        "confidence": "Very Low",
-        "summary": "This combination represents unacceptable risk levels."
+        "confidence": "Low",
+        "summary": "This combination requires heavy investment in safety infrastructure and human oversight."
       }
     }
   },
@@ -157,11 +170,11 @@
     }
   },
   {
-    "conditions": { "operational_req": ["high_availability"], "budget": ["under_50k", "50k_200k"] },
+    "conditions": { "operational_req": ["high_availability"], "budget": ["under_50k"] },
     "effects": {
       "warnings": [
-        "BUDGET MISMATCH: High availability requirements cannot be met with a limited budget.",
-        "HA infrastructure typically costs $100k+ annually."
+        "BUDGET MISMATCH: High availability requirements cannot be met with this budget.",
+        "HA infrastructure TCO (including personnel, monitoring, and redundancy) typically ranges from $115k-$300k+ annually."
       ]
     }
   },
@@ -180,8 +193,8 @@
     "conditions": { "multi_lingual": ["multi_lingual"], "budget": ["under_50k"] },
     "effects": {
       "warnings": [
-        "SCOPE-BUDGET MISMATCH: Multi-lingual support requires significantly more resources.",
-        "Each additional language typically adds 50-100% to the development effort."
+        "SCOPE-BUDGET MISMATCH: Multi-lingual support requires additional resources for data sourcing, model evaluation, and quality assurance across languages.",
+        "With modern multilingual models and efficient fine-tuning (PEFT/LoRA), each additional language typically adds 15-30% to development effort, primarily in data curation and evaluation."
       ]
     }
   }

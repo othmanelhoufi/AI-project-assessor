@@ -2,22 +2,22 @@
   "regression_ml": {
     "Category": "Classical ML (Regression)",
     "summary": "This is a classical machine learning regression problem. Success depends heavily on feature quality and domain expertise.",
-    "ScaleRecommendation": "Use Scikit-learn for <100k records, XGBoost/LightGBM for 100k-1M records, Distributed ML (Spark MLlib) for >1M records."
+    "ScaleRecommendation": "Scikit-learn is suitable for prototyping at any scale. XGBoost/LightGBM are recommended for production tabular data regardless of size due to superior performance. Use Spark MLlib only when data exceeds single-machine memory (typically 50+ GB) or requires distributed processing."
   },
   "classification_ml": {
     "Category": "Classical ML (Classification)",
     "summary": "This is a classical machine learning classification problem. Focus on class balance and appropriate evaluation metrics.",
-    "ScaleRecommendation": "Logistic Regression/Random Forest for <50k records, Gradient Boosting for 50k-500k records, Deep Learning for >500k complex records."
+    "ScaleRecommendation": "Logistic Regression for baseline and interpretable models. Gradient Boosting (XGBoost/LightGBM) is the industry standard for tabular data at any scale and typically outperforms deep learning on structured data. Consider Deep Learning only for unstructured inputs (images, text) or extremely complex feature interactions."
   },
   "nlp_general": {
     "Category": "Natural Language Processing (NLP)",
     "summary": "NLP complexity varies dramatically. Start simple and escalate only when necessary.",
-    "ApproachGuidance": "Simple tasks: Use pre-trained embeddings + classical ML. Complex tasks: Fine-tune transformer models. Document processing: Consider specialized models like LayoutLM."
+    "ApproachGuidance": "Simple tasks (sentiment, topic classification): Use embedding APIs (OpenAI, Cohere, Sentence Transformers) + classical ML. Medium complexity (NER, summarization): Fine-tune smaller transformer models (e.g., DeBERTa, DistilBERT) or use LLM APIs with structured prompting. Complex tasks (domain-specific understanding): Fine-tune larger models with domain data. Document processing: Consider specialized models like LayoutLM or DocTR."
   },
   "computer_vision_general": {
     "Category": "Computer Vision",
     "summary": "Computer Vision requires significant computational resources and labeled data. Transfer learning is almost always the right approach.",
-    "ApproachGuidance": "Always start with transfer learning from pre-trained models (ResNet, EfficientNet, YOLO). Only train from scratch if you have >100k labeled images and unique domain requirements."
+    "ApproachGuidance": "Always start with transfer learning from pre-trained models (EfficientNet, ConvNeXt, YOLO, DINOv2). Training from scratch is rarely justified; only consider it with >50k labeled images and truly unique visual domains not represented in existing models. Data augmentation is essential regardless of dataset size."
   },
   "ocr_services": {
     "Category": "OCR / Document AI",
@@ -27,12 +27,12 @@
   "rag_search": {
     "Category": "Search / RAG",
     "summary": "Information retrieval spans from simple search to complex RAG systems. Complexity depends on semantic understanding requirements.",
-    "ApproachGuidance": "Simple keyword search: Elasticsearch. Semantic search: Vector embeddings + vector DB. Question answering: RAG with LLMs."
+    "ApproachGuidance": "Simple keyword search: Elasticsearch/OpenSearch. Semantic search: Embedding models + vector DB (Qdrant, Chroma, Weaviate, Pinecone, Milvus). Question answering: RAG pipeline combining retrieval with LLM generation. Consider hybrid search (keyword + semantic) for best results. Chunking strategy and embedding model selection are critical to RAG quality."
   },
   "generative_ai": {
     "Category": "Generative AI",
     "summary": "Content generation is powerful but requires careful output validation and bias monitoring.",
-    "ApproachGuidance": "Start with prompt engineering on existing LLMs. Consider fine-tuning only for very specific domain requirements or style needs."
+    "ApproachGuidance": "Start with prompt engineering on existing LLM APIs (GPT-4, Claude, Gemini). For domain-specific knowledge, use RAG before considering fine-tuning. Fine-tuning is expensive ($10k-$100k+), time-consuming, and only justified for consistent style, format, or highly specialized domain output. Always implement output guardrails and human review for production use."
   },
   "decision_support": {
     "Category": "Varies (Classical ML or Rule-Based)",
@@ -62,12 +62,12 @@
   "data_engineering": {
     "Category": "Data Engineering",
     "summary": "Data processing is infrastructure-heavy. Focus on scalability, reliability, and monitoring from the start.",
-    "ScaleGuidance": "Pandas for <10GB, Polars for 10-100GB, Spark for >100GB or distributed processing needs."
+    "ScaleGuidance": "Pandas for datasets up to ~1GB (loads everything into memory, typically needs 2-5x the data size in RAM). Polars/DuckDB for 1-50GB (multi-threaded, memory-efficient, handles out-of-core processing). Spark only when data exceeds single-machine capacity (typically 50GB+) or requires distributed cluster processing."
   },
   "agentic_ai": {
     "Category": "Agentic AI / LLM Agents",
-    "summary": "CAUTION: Agentic AI is experimental technology. Approach as a research project with no production guarantees.",
-    "RiskLevel": "EXPERIMENTAL - Bleeding Edge Technology"
+    "summary": "CAUTION: Agentic AI is a rapidly maturing but high-risk technology. Many enterprises have deployed narrow agentic systems in production, but scaling remains challenging. Robust guardrails, observability, and human-in-the-loop oversight are essential.",
+    "RiskLevel": "HIGH RISK - Maturing Technology with Governance Challenges"
   },
   "data_processing_structured": {
     "DataProcessing": "Standard SQL and pandas/polars workflows apply."
@@ -85,7 +85,7 @@
     "Architecture": "Streaming data architecture required."
   },
   "approach_small_data": {
-    "RecommendedApproach": "Transfer learning, pre-trained models, or simple classical ML."
+    "RecommendedApproach": "Transfer learning, pre-trained models, data augmentation, synthetic data generation, or simple classical ML. Quality of data matters more than quantity at this scale."
   },
   "tools_medium_data": {
     "RecommendedTools": "Pandas, Scikit-learn, XGBoost suitable for this scale."

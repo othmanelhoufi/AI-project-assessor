@@ -5,7 +5,11 @@
     "priority": "Critical",
     "experience": "Mid-level",
     "knowledge": "Scikit-learn, XGBoost/LightGBM, Feature Engineering, Cross-validation",
-    "criticalSkills": ["Statistical validation", "Feature selection", "Model interpretability"]
+    "criticalSkills": [
+      "Statistical validation",
+      "Feature selection",
+      "Model interpretability"
+    ]
   },
   "domain_expert": {
     "title": "Domain Expert",
@@ -18,21 +22,33 @@
     "allocation": "Varies",
     "priority": "High (if data is unlabeled)",
     "knowledge": "Using data labeling tools (e.g., Labelbox, V7), understanding labeling guidelines.",
-    "criticalSkills": ["Attention to detail", "Consistency", "Subject matter expertise (sometimes required)"]
+    "criticalSkills": [
+      "Attention to detail",
+      "Consistency",
+      "Subject matter expertise (sometimes required)"
+    ]
   },
   "ai_engineer_nlp": {
     "title": "AI Engineer (NLP)",
     "allocation": "100%",
     "priority": "Critical",
     "knowledge": "Hugging Face Transformers, NLTK/spaCy, Embedding Models, Text preprocessing",
-    "criticalSkills": ["Model fine-tuning", "Text preprocessing", "Evaluation metrics for NLP"]
+    "criticalSkills": [
+      "Model fine-tuning",
+      "Text preprocessing",
+      "Evaluation metrics for NLP"
+    ]
   },
   "cv_engineer": {
     "title": "Computer Vision Engineer",
     "allocation": "100%",
     "priority": "Critical",
     "knowledge": "PyTorch/TensorFlow, OpenCV, Transfer Learning, Data Augmentation",
-    "criticalSkills": ["Model architecture selection", "Data augmentation strategies", "GPU optimization"]
+    "criticalSkills": [
+      "Model architecture selection",
+      "Data augmentation strategies",
+      "GPU optimization"
+    ]
   },
   "integration_engineer": {
     "title": "Integration Engineer",
@@ -44,21 +60,29 @@
     "title": "AI Engineer (RAG/Search)",
     "allocation": "100%",
     "priority": "Critical",
-    "knowledge": "Vector Databases (Pinecone, Weaviate), Embedding Models, LLM APIs",
-    "criticalSkills": ["Chunking strategies", "Embedding selection", "Retrieval optimization"]
+    "knowledge": "Vector Databases (Qdrant, Chroma, Weaviate, Pinecone, Milvus), Embedding Models, LLM APIs, Hybrid Search",
+    "criticalSkills": [
+      "Chunking strategies",
+      "Embedding selection",
+      "Retrieval optimization"
+    ]
   },
   "data_engineer_etl": {
     "title": "Data Engineer",
     "allocation": "50%",
     "priority": "High",
-    "knowledge": "Data Ingestion Pipelines, Document Chunking, ETL for unstructured data"
+    "knowledge": "Data Ingestion Pipelines, ETL/ELT workflows, Data Warehousing, dbt, Airflow, Data quality monitoring"
   },
   "ai_engineer_llm": {
     "title": "AI Engineer (LLM Specialist)",
     "allocation": "100%",
     "priority": "Critical",
     "knowledge": "Prompt Engineering, LLM Fine-tuning, LLM APIs (OpenAI, Anthropic, etc.)",
-    "criticalSkills": ["Prompt optimization", "Output validation", "Bias detection"]
+    "criticalSkills": [
+      "Prompt optimization",
+      "Output validation",
+      "Bias detection"
+    ]
   },
   "business_analyst": {
     "title": "Business Analyst",
@@ -72,17 +96,21 @@
     "priority": "Critical",
     "experience": "Mid-level",
     "knowledge": "Isolation Forest, LOF, Autoencoders, Statistical process control",
-    "criticalSkills": ["Threshold tuning", "False positive management", "Feature engineering for anomalies"]
+    "criticalSkills": [
+      "Threshold tuning",
+      "False positive management",
+      "Feature engineering for anomalies"
+    ]
   },
   "operations_researcher": {
     "title": "Operations Research Scientist",
     "allocation": "Advisory",
-    "priority": "Medium",
+    "priority": "High",
     "knowledge": "Linear programming, Constraint optimization, Simulation"
   },
   "lead_architect": {
     "title": "Lead AI Architect",
-    "allocation": "50%",
+    "allocation": "75%",
     "priority": "Critical",
     "experience": "Expert",
     "knowledge": "Multi-agent systems, LLM orchestration, Safety mechanisms"
@@ -91,7 +119,7 @@
     "title": "Research Engineer",
     "allocation": "100%",
     "priority": "Critical",
-    "knowledge": "LLM Frameworks (LangChain, LlamaIndex), API Tooling, Autonomous Systems, Safety research"
+    "knowledge": "LLM Frameworks (LangChain, LlamaIndex, CrewAI, AutoGen, Semantic Kernel), API Tooling, Autonomous Systems, Agent evaluation and safety research"
   },
   "ml_ops": {
     "title": "MLOps Engineer",
@@ -100,18 +128,12 @@
     "experience": "Mid-level",
     "knowledge": "CI/CD, Docker, Cloud Services, Model deployment"
   },
-  "ml_ops_sre": {
-    "title": "MLOps/SRE Engineer",
-    "allocation": "100%",
-    "priority": "Critical",
-    "experience": "Senior",
-    "knowledge": "Kubernetes, Terraform, Monitoring (Prometheus/Grafana), On-call procedures"
-  },
+
   "security_engineer": {
-    "title": "Security Engineer",
-    "allocation": "Consultation",
+    "title": "Security & Privacy Engineer",
+    "allocation": "25%",
     "priority": "High",
-    "knowledge": "Application security, Data protection, Compliance"
+    "knowledge": "Application security, Data protection, Privacy protocols, Anonymization"
   },
   "iot_engineer": {
     "title": "IoT Data Engineer",
@@ -143,13 +165,7 @@
     "priority": "Critical",
     "knowledge": "Kafka, Flink, Stream processing patterns, Real-time ML"
   },
-  "security_specialist": {
-    "title": "Security & Compliance Specialist",
-    "allocation": "Consultation",
-    "priority": "Critical",
-    "experience": "Senior",
-    "knowledge": "Data privacy regulations, Anonymization techniques, Security auditing"
-  },
+
   "legal_counsel": {
     "title": "Legal Counsel",
     "allocation": "Advisory",
@@ -158,7 +174,7 @@
   },
   "xai_specialist": {
     "title": "Explainable AI Specialist",
-    "allocation": "50%",
+    "allocation": "25%",
     "priority": "High",
     "knowledge": "SHAP, LIME, Interpretable ML, Model documentation"
   },
@@ -187,7 +203,7 @@
   },
   "solutions_architect": {
     "title": "Solutions Architect",
-    "allocation": "High",
+    "allocation": "25%",
     "priority": "Critical",
     "knowledge": "End-to-end solution design, Technology selection"
   },
