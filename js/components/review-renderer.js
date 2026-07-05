@@ -11,7 +11,7 @@ export class ReviewRenderer {
    * @param {object} assessment - The full assessment object, including answers and result.
    * @returns {string} The HTML string to be injected into the modal.
    */
-  static render(assessment) {
+  static render(assessment, aiAssistantInstance = null) {
     const { answers, result } = assessment;
     const assessmentData = stateManager.getState('assessmentData');
 
@@ -71,6 +71,9 @@ export class ReviewRenderer {
     let resultHtml = '';
     if (result) {
       const tempRenderer = new ResultRenderer();
+      if (aiAssistantInstance) {
+        tempRenderer.aiAssistant = aiAssistantInstance;
+      }
       const tempContainer = document.createElement('div');
       tempRenderer.elements.standardContainer = tempContainer;
       tempRenderer.elements.insufficientWarning = tempContainer;

@@ -115,7 +115,7 @@ export class ModalManager {
     elements.content.innerHTML = '<div class="text-center text-gray-500">Loading details...</div>';
     elements.modal.classList.remove(CONSTANTS.CSS_CLASSES.HIDDEN);
 
-    const contentHtml = ReviewRenderer.render(assessment);
+    const contentHtml = ReviewRenderer.render(assessment, this.reviewModalAIPlan);
     elements.content.innerHTML = contentHtml;
 
     if (assessment.result && assessment.result.aiPlanStatus === 'success') {
